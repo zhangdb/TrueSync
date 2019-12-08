@@ -11,7 +11,7 @@ namespace TrueSync {
     [AddComponentMenu("TrueSync/Physics/TSRigidBody", 11)]
     public class TSRigidBody : MonoBehaviour {
 
-        public enum InterpolateMode { None, Interpolate, Extrapolate };
+        //public enum InterpolateMode { None, Interpolate, Extrapolate };
 
         [FormerlySerializedAs("mass")]
         [SerializeField]
@@ -137,7 +137,7 @@ namespace TrueSync {
         /**
          *  @brief Interpolation mode that should be used. 
          **/
-        public InterpolateMode interpolation;
+        //public InterpolateMode interpolation;
 
         [SerializeField]
         [HideInInspector]

@@ -185,6 +185,7 @@ namespace TrueSync {
                 newBody.IsStatic = true;
             }
 
+            
             _body = newBody;
         }
 

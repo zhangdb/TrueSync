@@ -238,8 +238,8 @@ namespace TrueSync.Physics3D {
                 FP penetration;
                 bool result;
 
-                result = XenoCollide.Detect(myTriangle, otherTriangle, ref TSMatrix.InternalIdentity, ref TSMatrix.InternalIdentity,
-                    ref TSVector.InternalZero, ref TSVector.InternalZero, out point, out normal, out penetration);
+                result = XenoCollide.Detect(myTriangle, otherTriangle, TSMatrix.InternalIdentity, TSMatrix.InternalIdentity,
+                    TSVector.InternalZero, TSVector.InternalZero, out point, out normal, out penetration);
 
                 if (result)
                 {
@@ -270,22 +270,22 @@ namespace TrueSync.Physics3D {
 
             if (!b1IsMulti && !b2IsMulti)
             {
-                if (XenoCollide.Detect(body1.Shape, body2.Shape, ref body1.orientation,
-                    ref body2.orientation, ref body1.position, ref body2.position,
+                if (XenoCollide.Detect(body1.Shape, body2.Shape, body1.orientation,
+                    body2.orientation, body1.position, body2.position,
                     out point, out normal, out penetration))
                 {
                     //normal = JVector.Up;
                     //UnityEngine.Debug.Log("FINAL  --- >>> normal: " + normal);
                     TSVector point1, point2;
-                    FindSupportPoints(body1, body2, body1.Shape, body2.Shape, ref point, ref normal, out point1, out point2);
+                    FindSupportPoints(body1, body2, body1.Shape, body2.Shape, point, normal, out point1, out point2);
                     RaiseCollisionDetected(body1, body2, ref point1, ref point2, ref normal, penetration);
                 }
                 else if (speculative)
                 {
                     TSVector hit1, hit2;
 
-                    if (GJKCollide.ClosestPoints(body1.Shape, body2.Shape, ref body1.orientation, ref body2.orientation,
-                        ref body1.position, ref body2.position, out hit1, out hit2, out normal))
+                    if (GJKCollide.ClosestPoints(body1.Shape, body2.Shape, body1.orientation, body2.orientation,
+                        body1.position, body2.position, out hit1, out hit2, out normal))
                     {
                         TSVector delta = hit2 - hit1;
 
@@ -314,12 +314,12 @@ namespace TrueSync.Physics3D {
                 ms2 = ms2.RequestWorkingClone();
 
                 TSBBox transformedBoundingBox = body2.boundingBox;
-                transformedBoundingBox.InverseTransform(ref body1.position, ref body1.orientation);
+                transformedBoundingBox.InverseTransform(body1.position, body1.orientation);
 
                 int ms1Length = ms1.Prepare(ref transformedBoundingBox);
 
                 transformedBoundingBox = body1.boundingBox;
-                transformedBoundingBox.InverseTransform(ref body2.position, ref body2.orientation);
+                transformedBoundingBox.InverseTransform(body2.position, body2.orientation);
 
                 int ms2Length = ms2.Prepare(ref transformedBoundingBox);
 
@@ -338,20 +338,20 @@ namespace TrueSync.Physics3D {
                     {
                         ms2.SetCurrentShape(e);
 
-                        if (XenoCollide.Detect(ms1, ms2, ref body1.orientation,
-                            ref body2.orientation, ref body1.position, ref body2.position,
+                        if (XenoCollide.Detect(ms1, ms2, body1.orientation,
+                            body2.orientation, body1.position, body2.position,
                             out point, out normal, out penetration))
                         {
                             TSVector point1, point2;
-                            FindSupportPoints(body1, body2, ms1, ms2, ref point, ref normal, out point1, out point2);
+                            FindSupportPoints(body1, body2, ms1, ms2, point, normal, out point1, out point2);
                             RaiseCollisionDetected(body1, body2, ref point1, ref point2, ref normal, penetration);
                         }
                         else if (speculative)
                         {
                             TSVector hit1, hit2;
 
-                            if (GJKCollide.ClosestPoints(ms1, ms2, ref body1.orientation, ref body2.orientation,
-                                ref body1.position, ref body2.position, out hit1, out hit2, out normal))
+                            if (GJKCollide.ClosestPoints(ms1, ms2, body1.orientation, body2.orientation,
+                                body1.position, body2.position, out hit1, out hit2, out normal))
                             {
                                 TSVector delta = hit2 - hit1;
 
@@ -387,7 +387,7 @@ namespace TrueSync.Physics3D {
                 ms = ms.RequestWorkingClone();
 
                 TSBBox transformedBoundingBox = b2.boundingBox;
-                transformedBoundingBox.InverseTransform(ref b1.position, ref b1.orientation);
+                transformedBoundingBox.InverseTransform(b1.position, b1.orientation);
 
                 int msLength = ms.Prepare(ref transformedBoundingBox);
 
@@ -401,22 +401,22 @@ namespace TrueSync.Physics3D {
                 {
                     ms.SetCurrentShape(i);
 
-                    if (XenoCollide.Detect(ms, b2.Shape, ref b1.orientation,
-                        ref b2.orientation, ref b1.position, ref b2.position,
+                    if (XenoCollide.Detect(ms, b2.Shape, b1.orientation,
+                        b2.orientation, b1.position, b2.position,
                         out point, out normal, out penetration))
                     {
                         TSVector point1, point2;
-                        FindSupportPoints(b1, b2, ms, b2.Shape, ref point, ref normal, out point1, out point2);
+                        FindSupportPoints(b1, b2, ms, b2.Shape, point, normal, out point1, out point2);
 
                         if (useTerrainNormal && ms is TerrainShape)
                         {
                             (ms as TerrainShape).CollisionNormal(out normal);
-                            TSVector.Transform(ref normal, ref b1.orientation, out normal);
+                            TSVector.Transform(normal, b1.orientation, out normal);
                         }
                         else if (useTriangleMeshNormal && ms is TriangleMeshShape)
                         {
                             (ms as TriangleMeshShape).CollisionNormal(out normal);
-                            TSVector.Transform(ref normal, ref b1.orientation, out normal);
+                            TSVector.Transform(normal, b1.orientation, out normal);
                         }
 
                         RaiseCollisionDetected(b1, b2, ref point1, ref point2, ref normal, penetration);
@@ -425,8 +425,8 @@ namespace TrueSync.Physics3D {
                     {
                         TSVector hit1, hit2;
 
-                        if (GJKCollide.ClosestPoints(ms, b2.Shape, ref b1.orientation, ref b2.orientation,
-                            ref b1.position, ref b2.position, out hit1, out hit2, out normal))
+                        if (GJKCollide.ClosestPoints(ms, b2.Shape, b1.orientation, b2.orientation,
+                            b1.position, b2.position, out hit1, out hit2, out normal))
                         {
                             TSVector delta = hit2 - hit1;
 
@@ -455,7 +455,7 @@ namespace TrueSync.Physics3D {
                 ms = ms.RequestWorkingClone();
 
                 TSBBox transformedBoundingBox = softBody.BoundingBox;
-                transformedBoundingBox.InverseTransform(ref rigidBody.position, ref rigidBody.orientation);
+                transformedBoundingBox.InverseTransform(rigidBody.position, rigidBody.orientation);
 
                 int msLength = ms.Prepare(ref transformedBoundingBox);
 
@@ -474,8 +474,8 @@ namespace TrueSync.Physics3D {
                     {
                         ms.SetCurrentShape(e);
 
-                        result = XenoCollide.Detect(ms, t, ref rigidBody.orientation, ref TSMatrix.InternalIdentity,
-                            ref rigidBody.position, ref TSVector.InternalZero, out point, out normal, out penetration);
+                        result = XenoCollide.Detect(ms, t, rigidBody.orientation, TSMatrix.InternalIdentity,
+                            rigidBody.position, TSVector.InternalZero, out point, out normal, out penetration);
 
                         if (result)
                         {
@@ -504,8 +504,8 @@ namespace TrueSync.Physics3D {
                     FP penetration;
                     bool result;
 
-                    result = XenoCollide.Detect(rigidBody.Shape, t, ref rigidBody.orientation, ref TSMatrix.InternalIdentity,
-                        ref rigidBody.position, ref TSVector.InternalZero, out point, out normal, out penetration);
+                    result = XenoCollide.Detect(rigidBody.Shape, t, rigidBody.orientation, TSMatrix.InternalIdentity,
+                        rigidBody.position, TSVector.InternalZero, out point, out normal, out penetration);
 
                     if (result)
                     {
@@ -527,17 +527,17 @@ namespace TrueSync.Physics3D {
             TSVector p;
 
             p = sb.VertexBodies[triangle.indices.I0].position;
-            TSVector.Subtract(ref p, ref point, out p);
+            TSVector.Subtract(p, point, out p);
 
             FP length0 = p.sqrMagnitude;
 
             p = sb.VertexBodies[triangle.indices.I1].position;
-            TSVector.Subtract(ref p, ref point, out p);
+            TSVector.Subtract(p, point, out p);
 
             FP length1 = p.sqrMagnitude;
 
             p = sb.VertexBodies[triangle.indices.I2].position;
-            TSVector.Subtract(ref p, ref point, out p);
+            TSVector.Subtract(p, point, out p);
 
             FP length2 = p.sqrMagnitude;
 
@@ -555,33 +555,33 @@ namespace TrueSync.Physics3D {
 
 
         private void FindSupportPoints(RigidBody body1, RigidBody body2,
-            Shape shape1, Shape shape2, ref TSVector point, ref TSVector normal,
+            Shape shape1, Shape shape2, TSVector point, TSVector normal,
             out TSVector point1, out TSVector point2)
         {
-            TSVector mn; TSVector.Negate(ref normal, out mn);
+            TSVector mn; TSVector.Negate(normal, out mn);
 
             TSVector sA; SupportMapping(body1, shape1, ref mn, out sA);
             TSVector sB; SupportMapping(body2, shape2, ref normal, out sB);
 
-            TSVector.Subtract(ref sA, ref point, out sA);
-            TSVector.Subtract(ref sB, ref point, out sB);
+            TSVector.Subtract(sA, point, out sA);
+            TSVector.Subtract(sB, point, out sB);
 
-            FP dot1 = TSVector.Dot(ref sA, ref normal);
-            FP dot2 = TSVector.Dot(ref sB, ref normal);
+            FP dot1 = TSVector.Dot(sA, normal);
+            FP dot2 = TSVector.Dot(sB, normal);
 
-            TSVector.Multiply(ref normal, dot1, out sA);
-            TSVector.Multiply(ref normal, dot2, out sB);
+            TSVector.Multiply(normal, dot1, out sA);
+            TSVector.Multiply(normal, dot2, out sB);
 
-            TSVector.Add(ref point, ref sA, out point1);
-            TSVector.Add(ref point, ref sB, out point2);
+            TSVector.Add(point, sA, out point1);
+            TSVector.Add(point, sB, out point2);
         }
 
         private void SupportMapping(RigidBody body, Shape workingShape, ref TSVector direction, out TSVector result)
         {
-            TSVector.Transform(ref direction, ref body.invOrientation, out result);
+            TSVector.Transform(direction, body.invOrientation, out result);
             workingShape.SupportMapping(ref result, out result);
-            TSVector.Transform(ref result, ref body.orientation, out result);
-            TSVector.Add(ref result, ref body.position, out result);
+            TSVector.Transform(result, body.orientation, out result);
+            TSVector.Add(result, body.position, out result);
         }
 
         #endregion

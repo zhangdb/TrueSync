@@ -46,8 +46,8 @@ namespace TrueSync.Physics3D {
 
             hingeAxis *= FP.Half;
 
-            TSVector pos1 = position; TSVector.Add(ref pos1,ref hingeAxis,out pos1);
-            TSVector pos2 = position; TSVector.Subtract(ref pos2,ref hingeAxis,out pos2);
+            TSVector pos1 = position; TSVector.Add(pos1,hingeAxis,out pos1);
+            TSVector pos2 = position; TSVector.Subtract(pos2,hingeAxis,out pos2);
 
             worldPointConstraint[0] = new PointOnPoint((RigidBody)body1, (RigidBody)body2, pos1);
             worldPointConstraint[1] = new PointOnPoint((RigidBody)body1, (RigidBody)body2, pos2);

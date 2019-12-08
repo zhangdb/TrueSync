@@ -52,11 +52,11 @@ namespace TrueSync.Physics3D {
         public PointPointDistance(RigidBody body1, RigidBody body2, TSVector anchor1,TSVector anchor2)
             : base(body1, body2)
         {
-            TSVector.Subtract(ref anchor1, ref body1.position, out localAnchor1);
-            TSVector.Subtract(ref anchor2, ref body2.position, out localAnchor2);
+            TSVector.Subtract(anchor1, body1.position, out localAnchor1);
+            TSVector.Subtract(anchor2, body2.position, out localAnchor2);
 
-            TSVector.Transform(ref localAnchor1, ref body1.invOrientation, out localAnchor1);
-            TSVector.Transform(ref localAnchor2, ref body2.invOrientation, out localAnchor2);
+            TSVector.Transform(localAnchor1, body1.invOrientation, out localAnchor1);
+            TSVector.Transform(localAnchor2, body2.invOrientation, out localAnchor2);
 
             distance = (anchor1 - anchor2).magnitude;
         }
@@ -108,14 +108,14 @@ namespace TrueSync.Physics3D {
         /// <param name="timestep">The 5simulation timestep</param>
         public override void PrepareForIteration(FP timestep)
         {
-            TSVector.Transform(ref localAnchor1, ref body1.orientation, out r1);
-            TSVector.Transform(ref localAnchor2, ref body2.orientation, out r2);
+            TSVector.Transform(localAnchor1, body1.orientation, out r1);
+            TSVector.Transform(localAnchor2, body2.orientation, out r2);
 
             TSVector p1, p2, dp;
-            TSVector.Add(ref body1.position, ref r1, out p1);
-            TSVector.Add(ref body2.position, ref r2, out p2);
+            TSVector.Add(body1.position, r1, out p1);
+            TSVector.Add(body2.position, r2, out p2);
 
-            TSVector.Subtract(ref p2, ref p1, out dp);
+            TSVector.Subtract(p2, p1, out dp);
 
             FP deltaLength = dp.magnitude - distance;
 
@@ -152,13 +152,13 @@ namespace TrueSync.Physics3D {
 
                 if (!body1.isStatic)
                 {
-                    body1.linearVelocity += body1.inverseMass * accumulatedImpulse * jacobian[0];
+                    body1.ApplyImpulse( accumulatedImpulse * jacobian[0]);
                     body1.angularVelocity += TSVector.Transform(accumulatedImpulse * jacobian[1], body1.invInertiaWorld);
                 }
 
                 if (!body2.isStatic)
                 {
-                    body2.linearVelocity += body2.inverseMass * accumulatedImpulse * jacobian[2];
+                    body2.ApplyImpulse(accumulatedImpulse * jacobian[2]);
                     body2.angularVelocity += TSVector.Transform(accumulatedImpulse * jacobian[3], body2.invInertiaWorld);
                 }
             }
@@ -201,13 +201,13 @@ namespace TrueSync.Physics3D {
 
             if (!body1.isStatic)
             {
-                body1.linearVelocity += body1.inverseMass * lambda * jacobian[0];
+                body1.ApplyImpulse( lambda * jacobian[0]);
                 body1.angularVelocity += TSVector.Transform(lambda * jacobian[1], body1.invInertiaWorld);
             }
 
             if (!body2.isStatic)
             {
-                body2.linearVelocity += body2.inverseMass * lambda * jacobian[2];
+                body2.ApplyImpulse(lambda * jacobian[2]);
                 body2.angularVelocity += TSVector.Transform(lambda * jacobian[3], body2.invInertiaWorld);
             }
         }

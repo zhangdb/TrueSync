@@ -158,8 +158,8 @@ namespace TrueSync.Physics3D {
                 for (int e = 0; e < triangles.Count; e++)
                 {
                     TSVector pos = triangles[e];
-                    TSVector.Transform(ref pos,ref shapes[i].orientation,out pos);
-                    TSVector.Add(ref pos, ref shapes[i].position,out pos);
+                    TSVector.Transform(pos,shapes[i].orientation,out pos);
+                    TSVector.Add(pos, shapes[i].position,out pos);
                     triangleList.Add(pos);
                 }
                 triangles.Clear();
@@ -229,10 +229,10 @@ namespace TrueSync.Physics3D {
         /// <param name="result">The result.</param>
         public override void SupportMapping(ref TSVector direction, out TSVector result)
         {
-            TSVector.Transform(ref direction, ref shapes[currentShape].invOrientation, out result);
+            TSVector.Transform(direction, shapes[currentShape].invOrientation, out result);
             shapes[currentShape].Shape.SupportMapping(ref direction, out result);
-            TSVector.Transform(ref result, ref shapes[currentShape].orientation, out result);
-            TSVector.Add(ref result, ref shapes[currentShape].position, out result);
+            TSVector.Transform(result, shapes[currentShape].orientation, out result);
+            TSVector.Add(result, shapes[currentShape].position, out result);
         }
 
         /// <summary>
@@ -250,11 +250,11 @@ namespace TrueSync.Physics3D {
             TSVector localCenter = FP.Half * (box.max + box.min);
 
             TSVector center;
-            TSVector.Transform(ref localCenter, ref orientation, out center);
+            TSVector.Transform(localCenter, orientation, out center);
 
-            TSMatrix abs; TSMath.Absolute(ref orientation, out abs);
+            TSMatrix abs; TSMath.Absolute(orientation, out abs);
             TSVector temp;
-            TSVector.Transform(ref localHalfExtents, ref abs, out temp);
+            TSVector.Transform(localHalfExtents, abs, out temp);
 
             box.max = center + temp;
             box.min = center - temp;
@@ -305,8 +305,8 @@ namespace TrueSync.Physics3D {
         {
             TSBBox box = TSBBox.SmallBox;
 
-            box.AddPoint(ref rayOrigin);
-            box.AddPoint(ref rayEnd);
+            box.AddPoint(rayOrigin);
+            box.AddPoint(rayEnd);
 
             return this.Prepare(ref box);
         }

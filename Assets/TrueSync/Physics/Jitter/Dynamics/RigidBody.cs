@@ -65,7 +65,10 @@ namespace TrueSync.Physics3D {
         internal CollisionIsland island;
         internal FP inverseMass;
 
-        internal TSVector force, torque;
+        // 力
+        internal TSVector force;
+        // 力矩
+        internal TSVector torque;
 
         private int hashCode;
 
@@ -306,13 +309,13 @@ namespace TrueSync.Physics3D {
         /// <param name="impulse">Impulse direction and magnitude.</param>
         public void ApplyImpulse(TSVector impulse)
         {
-            if (this.isStatic) {
+            if (this.isStatic || impulse.IsZero()) {
                 return;
             }
-
+            //UnityEngine.Debug.Log($"ApplyImpulse {impulse}");
             TSVector temp;
-            TSVector.Multiply(ref impulse, inverseMass, out temp);
-            TSVector.Add(ref linearVelocity, ref temp, out linearVelocity);
+            TSVector.Multiply(impulse, inverseMass, out temp);
+            TSVector.Add(linearVelocity, temp, out linearVelocity);
         }
 
         /// <summary>
@@ -324,17 +327,17 @@ namespace TrueSync.Physics3D {
         /// in Body coordinate frame.</param>
         public void ApplyImpulse(TSVector impulse, TSVector relativePosition)
         {
-            if (this.isStatic) {
+            if (this.isStatic || impulse.IsZero()) {
                 return;
             }
-
+            //UnityEngine.Debug.Log($"ApplyImpulse {impulse} {relativePosition}");
             TSVector temp;
-            TSVector.Multiply(ref impulse, inverseMass, out temp);
-            TSVector.Add(ref linearVelocity, ref temp, out linearVelocity);
+            TSVector.Multiply(impulse, inverseMass, out temp);
+            TSVector.Add(linearVelocity, temp, out linearVelocity);
 
-            TSVector.Cross(ref relativePosition, ref impulse, out temp);
-            TSVector.Transform(ref temp, ref invInertiaWorld, out temp);
-            TSVector.Add(ref angularVelocity, ref temp, out angularVelocity);
+            TSVector.Cross(relativePosition, impulse, out temp);
+            TSVector.Transform(temp, invInertiaWorld, out temp);
+            TSVector.Add(angularVelocity, temp, out angularVelocity);
         }
 
         /// <summary>
@@ -346,7 +349,7 @@ namespace TrueSync.Physics3D {
         /// <param name="force">The force to add next <see cref="World.Step"/>.</param>
         public void AddForce(TSVector force)
         {
-            TSVector.Add(ref force, ref this.force, out this.force);
+            TSVector.Add(force, this.force, out this.force);
         }
 
         /// <summary>
@@ -359,10 +362,10 @@ namespace TrueSync.Physics3D {
         /// <param name="pos">The position where the force is applied.</param>
         public void AddForce(TSVector force, TSVector pos)
         {
-            TSVector.Add(ref this.force, ref force, out this.force);
-            TSVector.Subtract(ref pos, ref this.position, out pos);
-            TSVector.Cross(ref pos, ref force, out pos);
-            TSVector.Add(ref pos, ref this.torque, out this.torque);
+            TSVector.Add(this.force, force, out this.force);
+            TSVector.Subtract(pos, this.position, out pos);
+            TSVector.Cross(pos, force, out pos);
+            TSVector.Add(pos, this.torque, out this.torque);
         }
 
         /// <summary>
@@ -384,7 +387,7 @@ namespace TrueSync.Physics3D {
         /// <param name="torque">The torque to add next <see cref="World.Step"/>.</param>
         public void AddTorque(TSVector torque)
         {
-            TSVector.Add(ref torque, ref this.torque, out this.torque);
+            TSVector.Add(torque, this.torque, out this.torque);
         }
 
         /// <summary>
@@ -397,7 +400,7 @@ namespace TrueSync.Physics3D {
         public void AddRelativeTorque(TSVector torque)
         {
             torque = TSVector.Transform(torque, this.TSOrientation);
-            TSVector.Add(ref torque, ref this.torque, out this.torque);
+            TSVector.Add(torque, this.torque, out this.torque);
         }
 
         protected bool useShapeMassProperties = true;
@@ -499,7 +502,7 @@ namespace TrueSync.Physics3D {
                 if (this.isStatic) {
                     return;
                 }
-
+                //UnityEngine.Debug.LogError(value);
                 linearVelocity = value;
             }
         }
@@ -688,8 +691,8 @@ namespace TrueSync.Physics3D {
                 this.invInertia = this.invInertiaWorld = TSMatrix.Zero;
                 this.invOrientation = this.orientation = TSMatrix.Identity;
                 this.boundingBox = shape.boundingBox;
-                TSVector.Add(ref boundingBox.min, ref this.position, out boundingBox.min);
-                TSVector.Add(ref boundingBox.max, ref this.position, out boundingBox.max);
+                TSVector.Add(boundingBox.min, this.position, out boundingBox.min);
+                TSVector.Add(boundingBox.max, this.position, out boundingBox.max);
 
                 angularVelocity.MakeZero();
             }
@@ -698,8 +701,8 @@ namespace TrueSync.Physics3D {
                 // Given: Orientation, Inertia
                 TSMatrix.Transpose(ref orientation, out invOrientation);
                 this.Shape.GetBoundingBox(ref orientation, out boundingBox);
-                TSVector.Add(ref boundingBox.min, ref this.position, out boundingBox.min);
-                TSVector.Add(ref boundingBox.max, ref this.position, out boundingBox.max);
+                TSVector.Add(boundingBox.min, this.position, out boundingBox.min);
+                TSVector.Add(boundingBox.max, this.position, out boundingBox.max);
 
 
                 if (!isStatic)
@@ -877,14 +880,14 @@ namespace TrueSync.Physics3D {
                 pos2 = hullPoints[i + 1];
                 pos3 = hullPoints[i + 2];
 
-                TSVector.Transform(ref pos1, ref orientation, out pos1);
-                TSVector.Add(ref pos1, ref position, out pos1);
+                TSVector.Transform(pos1, orientation, out pos1);
+                TSVector.Add(pos1, position, out pos1);
 
-                TSVector.Transform(ref pos2, ref orientation, out pos2);
-                TSVector.Add(ref pos2, ref position, out pos2);
+                TSVector.Transform(pos2, orientation, out pos2);
+                TSVector.Add(pos2, position, out pos2);
 
-                TSVector.Transform(ref pos3, ref orientation, out pos3);
-                TSVector.Add(ref pos3, ref position, out pos3);
+                TSVector.Transform(pos3, orientation, out pos3);
+                TSVector.Add(pos3, position, out pos3);
 
                 drawer.DrawTriangle(pos1, pos2, pos3);
             }

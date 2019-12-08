@@ -58,7 +58,7 @@ namespace TrueSync.Physics3D {
             result = direction;
             result.Normalize();
 
-            TSVector.Multiply(ref result, radius, out result);
+            TSVector.Multiply(result, radius, out result);
         }
 
         /// <summary>

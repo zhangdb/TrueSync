@@ -90,9 +90,9 @@ namespace TrueSync.Physics3D {
         /// <param name="normal">The normal pointing from body2 to body1.</param>
         /// <param name="penetration">Estimated penetration depth of the collision.</param>
         /// <returns>Returns true if there is a collision, false otherwise.</returns>
-        public static bool Detect(ISupportMappable support1, ISupportMappable support2, ref TSMatrix orientation1,
-             ref TSMatrix orientation2, ref TSVector position1, ref TSVector position2,
-             out TSVector point, out TSVector normal, out FP penetration)
+        public static bool Detect(ISupportMappable support1, ISupportMappable support2, TSMatrix orientation1,
+            TSMatrix orientation2, TSVector position1, TSVector position2,
+            out TSVector point, out TSVector normal, out FP penetration)
         {
             // Used variables
             TSVector temp1, temp2;
@@ -111,66 +111,66 @@ namespace TrueSync.Physics3D {
 
             // Get the center of shape1 in world coordinates -> v01
             support1.SupportCenter(out v01);
-            TSVector.Transform(ref v01, ref orientation1, out v01);
-            TSVector.Add(ref position1, ref v01, out v01);
+            TSVector.Transform(v01, orientation1, out v01);
+            TSVector.Add(position1, v01, out v01);
 
             // Get the center of shape2 in world coordinates -> v02
             support2.SupportCenter(out v02);
-            TSVector.Transform(ref v02, ref orientation2, out v02);
-            TSVector.Add(ref position2, ref v02, out v02);
+            TSVector.Transform(v02, orientation2, out v02);
+            TSVector.Add(position2, v02, out v02);
 
             // v0 is the center of the minkowski difference
-            TSVector.Subtract(ref v02, ref v01, out v0);
+            TSVector.Subtract(v02, v01, out v0);
 
             // Avoid case where centers overlap -- any direction is fine in this case
             if (v0.IsNearlyZero()) v0 = new TSVector(FP.EN4, 0, 0);
 
             // v1 = support in direction of origin
             mn = v0;
-            TSVector.Negate(ref v0, out normal);
+            TSVector.Negate(v0, out normal);
 			//UnityEngine.Debug.Log("normal: " + normal);
 
             SupportMapTransformed(support1, ref orientation1, ref position1, ref mn, out v11);
             SupportMapTransformed(support2, ref orientation2, ref position2, ref normal, out v12);
-            TSVector.Subtract(ref v12, ref v11, out v1);
+            TSVector.Subtract(v12, v11, out v1);
 
-            if (TSVector.Dot(ref v1, ref normal) <= FP.Zero) return false;
+            if (TSVector.Dot(v1, normal) <= FP.Zero) return false;
 
             // v2 = support perpendicular to v1,v0
-            TSVector.Cross(ref v1, ref v0, out normal);
+            TSVector.Cross(v1, v0, out normal);
 
             if (normal.IsNearlyZero())
             {
-                TSVector.Subtract(ref v1, ref v0, out normal);
+                TSVector.Subtract(v1, v0, out normal);
 				//UnityEngine.Debug.Log("normal: " + normal);
 
                 normal.Normalize();
 
                 point = v11;
-                TSVector.Add(ref point, ref v12, out point);
-                TSVector.Multiply(ref point, FP.Half, out point);
+                TSVector.Add(point, v12, out point);
+                TSVector.Multiply(point, FP.Half, out point);
 
-                TSVector.Subtract(ref v12, ref v11, out temp1);
-                penetration = TSVector.Dot(ref temp1, ref normal);
+                TSVector.Subtract(v12, v11, out temp1);
+                penetration = TSVector.Dot(temp1, normal);
 
                 //point = v11;
                 //point2 = v12;
                 return true;
             }
 
-            TSVector.Negate(ref normal, out mn);
+            TSVector.Negate(normal, out mn);
             SupportMapTransformed(support1, ref orientation1, ref position1, ref mn, out v21);
             SupportMapTransformed(support2, ref orientation2, ref position2, ref normal, out v22);
-            TSVector.Subtract(ref v22, ref v21, out v2);
+            TSVector.Subtract(v22, v21, out v2);
 
-            if (TSVector.Dot(ref v2, ref normal) <= FP.Zero) return false;
+            if (TSVector.Dot(v2, normal) <= FP.Zero) return false;
 
             // Determine whether origin is on + or - side of plane (v1,v0,v2)
-            TSVector.Subtract(ref v1, ref v0, out temp1);
-            TSVector.Subtract(ref v2, ref v0, out temp2);
-            TSVector.Cross(ref temp1, ref temp2, out normal);
+            TSVector.Subtract(v1, v0, out temp1);
+            TSVector.Subtract(v2, v0, out temp2);
+            TSVector.Cross(temp1, temp2, out normal);
 
-            FP dist = TSVector.Dot(ref normal, ref v0);
+            FP dist = TSVector.Dot(normal, v0);
 
             // If the origin is on the - side of the plane, reverse the direction of the plane
             if (dist > FP.Zero)
@@ -178,7 +178,7 @@ namespace TrueSync.Physics3D {
                 TSVector.Swap(ref v1, ref v2);
                 TSVector.Swap(ref v11, ref v21);
                 TSVector.Swap(ref v12, ref v22);
-                TSVector.Negate(ref normal, out normal);
+                TSVector.Negate(normal, out normal);
 				//UnityEngine.Debug.Log("normal: " + normal);
             }
 
@@ -196,42 +196,42 @@ namespace TrueSync.Physics3D {
 
                 // Obtain the support point in a direction perpendicular to the existing plane
                 // Note: This point is guaranteed to lie off the plane
-                TSVector.Negate(ref normal, out mn);
+                TSVector.Negate(normal, out mn);
 				//UnityEngine.Debug.Log("mn: " + mn);
                 SupportMapTransformed(support1, ref orientation1, ref position1, ref mn, out v31);
                 SupportMapTransformed(support2, ref orientation2, ref position2, ref normal, out v32);
-                TSVector.Subtract(ref v32, ref v31, out v3);
+                TSVector.Subtract(v32, v31, out v3);
 
 
-                if (TSVector.Dot(ref v3, ref normal) <= FP.Zero)
+                if (TSVector.Dot(v3, normal) <= FP.Zero)
                 {
                     return false;
                 }
 
                 // If origin is outside (v1,v0,v3), then eliminate v2 and loop
-                TSVector.Cross(ref v1, ref v3, out temp1);
-                if (TSVector.Dot(ref temp1, ref v0) < FP.Zero)
+                TSVector.Cross(v1, v3, out temp1);
+                if (TSVector.Dot(temp1, v0) < FP.Zero)
                 {
                     v2 = v3;
                     v21 = v31;
                     v22 = v32;
-                    TSVector.Subtract(ref v1, ref v0, out temp1);
-                    TSVector.Subtract(ref v3, ref v0, out temp2);
-                    TSVector.Cross(ref temp1, ref temp2, out normal);
+                    TSVector.Subtract(v1, v0, out temp1);
+                    TSVector.Subtract(v3, v0, out temp2);
+                    TSVector.Cross(temp1, temp2, out normal);
 				//	UnityEngine.Debug.Log("normal: " + normal);
                     continue;
                 }
 
                 // If origin is outside (v3,v0,v2), then eliminate v1 and loop
-                TSVector.Cross(ref v3, ref v2, out temp1);
-                if (TSVector.Dot(ref temp1, ref v0) < FP.Zero)
+                TSVector.Cross(v3, v2, out temp1);
+                if (TSVector.Dot(temp1, v0) < FP.Zero)
                 {
                     v1 = v3;
                     v11 = v31;
                     v12 = v32;
-                    TSVector.Subtract(ref v3, ref v0, out temp1);
-                    TSVector.Subtract(ref v2, ref v0, out temp2);
-                    TSVector.Cross(ref temp1, ref temp2, out normal);
+                    TSVector.Subtract(v3, v0, out temp1);
+                    TSVector.Subtract(v2, v0, out temp2);
+                    TSVector.Cross(temp1, temp2, out normal);
 					//UnityEngine.Debug.Log("normal: " + normal);
                     continue;
                 }
@@ -254,9 +254,9 @@ namespace TrueSync.Physics3D {
 					UnityEngine.Debug.LogError(" ::END STATE"); 
 */
 					// Compute normal of the wedge face
-                    TSVector.Subtract(ref v2, ref v1, out temp1);
-                    TSVector.Subtract(ref v3, ref v1, out temp2);
-                    TSVector.Cross(ref temp1, ref temp2, out normal);
+                    TSVector.Subtract(v2, v1, out temp1);
+                    TSVector.Subtract(v3, v1, out temp2);
+                    TSVector.Cross(temp1, temp2, out normal);
 				// Beginer
 				//	UnityEngine.Debug.Log("normal: " + normal);
 
@@ -266,7 +266,7 @@ namespace TrueSync.Physics3D {
                     normal.Normalize();
 					//UnityEngine.Debug.Log("normal: " + normal);
                     // Compute distance from origin to wedge face
-                    FP d = TSVector.Dot(ref normal, ref v1);
+                    FP d = TSVector.Dot(normal, v1);
 
 
                     // If the origin is inside the wedge, we have a hit
@@ -277,14 +277,14 @@ namespace TrueSync.Physics3D {
                     }
 
                     // Find the support point in the direction of the wedge face
-                    TSVector.Negate(ref normal, out mn);
+                    TSVector.Negate(normal, out mn);
                     SupportMapTransformed(support1, ref orientation1, ref position1, ref mn, out v41);
                     SupportMapTransformed(support2, ref orientation2, ref position2, ref normal, out v42);
-                    TSVector.Subtract(ref v42, ref v41, out v4);
+                    TSVector.Subtract(v42, v41, out v4);
 
-                    TSVector.Subtract(ref v4, ref v3, out temp1);
-                    FP delta = TSVector.Dot(ref temp1, ref normal);
-                    penetration = TSVector.Dot(ref v4, ref normal);
+                    TSVector.Subtract(v4, v3, out temp1);
+                    FP delta = TSVector.Dot(temp1, normal);
+                    penetration = TSVector.Dot(v4, normal);
 
                     // If the boundary is thin enough or the origin is outside the support plane for the newly discovered vertex, then we can terminate
                     if (delta <= CollideEpsilon || penetration <= FP.Zero || phase2 > MaximumIterations)
@@ -292,50 +292,50 @@ namespace TrueSync.Physics3D {
 
                         if (hit)
                         {
-                            TSVector.Cross(ref v1, ref v2, out temp1);
-                            FP b0 = TSVector.Dot(ref temp1, ref v3);
-                            TSVector.Cross(ref v3, ref v2, out temp1);
-                            FP b1 = TSVector.Dot(ref temp1, ref v0);
-                            TSVector.Cross(ref v0, ref v1, out temp1);
-                            FP b2 = TSVector.Dot(ref temp1, ref v3);
-                            TSVector.Cross(ref v2, ref v1, out temp1);
-                            FP b3 = TSVector.Dot(ref temp1, ref v0);
+                            TSVector.Cross(v1, v2, out temp1);
+                            FP b0 = TSVector.Dot(temp1, v3);
+                            TSVector.Cross(v3, v2, out temp1);
+                            FP b1 = TSVector.Dot(temp1, v0);
+                            TSVector.Cross(v0, v1, out temp1);
+                            FP b2 = TSVector.Dot(temp1, v3);
+                            TSVector.Cross(v2, v1, out temp1);
+                            FP b3 = TSVector.Dot(temp1, v0);
 
                             FP sum = b0 + b1 + b2 + b3;
 
                             if (sum <= 0)
                             {
                                 b0 = 0;
-                                TSVector.Cross(ref v2, ref v3, out temp1);
-                                b1 = TSVector.Dot(ref temp1, ref normal);
-                                TSVector.Cross(ref v3, ref v1, out temp1);
-                                b2 = TSVector.Dot(ref temp1, ref normal);
-                                TSVector.Cross(ref v1, ref v2, out temp1);
-                                b3 = TSVector.Dot(ref temp1, ref normal);
+                                TSVector.Cross(v2, v3, out temp1);
+                                b1 = TSVector.Dot(temp1, normal);
+                                TSVector.Cross(v3, v1, out temp1);
+                                b2 = TSVector.Dot(temp1, normal);
+                                TSVector.Cross(v1, v2, out temp1);
+                                b3 = TSVector.Dot(temp1, normal);
 
                                 sum = b1 + b2 + b3;
                             }
 
                             FP inv = FP.One / sum;
 
-                            TSVector.Multiply(ref v01, b0, out point);
-                            TSVector.Multiply(ref v11, b1, out temp1);
-                            TSVector.Add(ref point, ref temp1, out point);
-                            TSVector.Multiply(ref v21, b2, out temp1);
-                            TSVector.Add(ref point, ref temp1, out point);
-                            TSVector.Multiply(ref v31, b3, out temp1);
-                            TSVector.Add(ref point, ref temp1, out point);
+                            TSVector.Multiply(v01, b0, out point);
+                            TSVector.Multiply(v11, b1, out temp1);
+                            TSVector.Add(point, temp1, out point);
+                            TSVector.Multiply(v21, b2, out temp1);
+                            TSVector.Add(point, temp1, out point);
+                            TSVector.Multiply(v31, b3, out temp1);
+                            TSVector.Add(point, temp1, out point);
 
-                            TSVector.Multiply(ref v02, b0, out temp2);
-                            TSVector.Add(ref temp2, ref point, out point);
-                            TSVector.Multiply(ref v12, b1, out temp1);
-                            TSVector.Add(ref point, ref temp1, out point);
-                            TSVector.Multiply(ref v22, b2, out temp1);
-                            TSVector.Add(ref point, ref temp1, out point);
-                            TSVector.Multiply(ref v32, b3, out temp1);
-                            TSVector.Add(ref point, ref temp1, out point);
+                            TSVector.Multiply(v02, b0, out temp2);
+                            TSVector.Add(temp2, point, out point);
+                            TSVector.Multiply(v12, b1, out temp1);
+                            TSVector.Add(point, temp1, out point);
+                            TSVector.Multiply(v22, b2, out temp1);
+                            TSVector.Add(point, temp1, out point);
+                            TSVector.Multiply(v32, b3, out temp1);
+                            TSVector.Add(point, temp1, out point);
 
-                            TSVector.Multiply(ref point, inv * FP.Half, out point);
+                            TSVector.Multiply(point, inv * FP.Half, out point);
 
                         }
 
@@ -355,17 +355,17 @@ namespace TrueSync.Physics3D {
 
                     // Compute the tetrahedron dividing face (v4,v0,v3)
 					//UnityEngine.Debug.LogError("v4:" +  v4 + " v0:" + v0);
-                    TSVector.Cross(ref v4, ref v0, out temp1);
+                    TSVector.Cross(v4, v0, out temp1);
 					//UnityEngine.Debug.LogError("temp1:"+ temp1);
 					
 					//Ender
 				//	UnityEngine.Debug.Log("normal: " + normal);
-                    FP dot = TSVector.Dot(ref temp1, ref v1);
+                    FP dot = TSVector.Dot(temp1, v1);
 
                     if (dot >= FP.Zero)
                     {
 					//	UnityEngine.Debug.Log("dot >= 0 temp1:" + temp1 + "  v2:" + v2 );
-                        dot = TSVector.Dot(ref temp1, ref v2);
+                        dot = TSVector.Dot(temp1, v2);
 
                         if (dot >= FP.Zero)
                         {
@@ -389,7 +389,7 @@ namespace TrueSync.Physics3D {
                     else
                     {
 					//	UnityEngine.Debug.Log("dot < 0 temp1:" + temp1 + "  v3:" + v3 );
-                        dot = TSVector.Dot(ref temp1, ref v3);
+                        dot = TSVector.Dot(temp1, v3);
 
                         if (dot >= FP.Zero)
                         {

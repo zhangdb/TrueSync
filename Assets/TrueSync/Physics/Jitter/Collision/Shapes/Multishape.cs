@@ -134,7 +134,7 @@ namespace TrueSync.Physics3D {
             // TODO: calc this right
             inertia = TSMatrix.Identity;
 
-            TSVector size; TSVector.Subtract(ref boundingBox.max, ref boundingBox.min, out size);
+            TSVector size; TSVector.Subtract(boundingBox.max, boundingBox.min, out size);
 
             mass = size.x * size.y * size.z;
 

@@ -202,10 +202,9 @@ namespace TrueSync.Physics3D
         /// </summary>
         public List<CollisionIsland> Islands { get { return islands; } }
 
-        private Action<object> arbiterCallback;
-        private Action<object> integrateCallback;
+        
 
-        private CollisionDetectedHandler collisionDetectionHandler;
+       
 
         public IPhysicsManager physicsManager;
 
@@ -224,9 +223,7 @@ namespace TrueSync.Physics3D
             RigidBody.instanceCount = 0;
             Constraint.instanceCount = 0;
 
-            arbiterCallback = new Action<object>(ArbiterCallback);
-            integrateCallback = new Action<object>(IntegrateCallback);
-
+            
             // Create the readonly wrappers
 			this.RigidBodies = new ReadOnlyHashset<RigidBody>(rigidBodies);
 			this.Constraints = new ReadOnlyHashset<Constraint>(constraints);
@@ -234,9 +231,7 @@ namespace TrueSync.Physics3D
 
             this.CollisionSystem = collision;
 
-            collisionDetectionHandler = new CollisionDetectedHandler(CollisionDetected);
-
-            this.CollisionSystem.CollisionDetected += collisionDetectionHandler;
+            this.CollisionSystem.CollisionDetected += CollisionDetected;
 
             this.arbiterMap = new ArbiterMap();
             this.arbiterTriggerMap = new ArbiterMap();
@@ -592,7 +587,7 @@ namespace TrueSync.Physics3D
             for (int index = 0, length = softbodies.Count; index < length; index++) {
                 SoftBody body = softbodies[index];
                 body.Update(timestep);
-                body.DoSelfCollision(collisionDetectionHandler);
+                body.DoSelfCollision(CollisionDetected);
             }
 
             CollisionSystem.Detect();
@@ -675,8 +670,8 @@ namespace TrueSync.Physics3D
                 }
                 else
                 {
-                    TSVector diff; TSVector.Subtract(ref c.p1, ref c.p2, out diff);
-                    FP distance = TSVector.Dot(ref diff, ref c.normal);
+                    TSVector diff; TSVector.Subtract(c.p1, c.p2, out diff);
+                    FP distance = TSVector.Dot(diff, c.normal);
 
                     diff = diff - distance * c.normal;
                     distance = diff.sqrMagnitude;
@@ -773,10 +768,13 @@ namespace TrueSync.Physics3D
         {
             for (int i = 0; i < islands.Count; i++)
             {
-                if (islands[i].IsActive()) arbiterCallback(islands[i]);
+                if (islands[i].IsActive()) ArbiterCallback(islands[i]);
             }
         }
 
+        /// <summary>
+        /// 整合力，转化成线速度、角速度
+        /// </summary>
         private void IntegrateForces()
         {
             for (int index = 0, length = rigidBodies.Count; index < length; index++) {
@@ -784,20 +782,20 @@ namespace TrueSync.Physics3D
                 if (!body.isStatic && body.IsActive)
                 {
                     TSVector temp;
-                    TSVector.Multiply(ref body.force, body.inverseMass * timestep, out temp);
-                    TSVector.Add(ref temp, ref body.linearVelocity, out body.linearVelocity);
+                    TSVector.Multiply(body.force, body.inverseMass * timestep, out temp);
+                    TSVector.Add(temp, body.linearVelocity, out body.linearVelocity);
 
                     if (!(body.isParticle))
                     {
-                        TSVector.Multiply(ref body.torque, timestep, out temp);
-                        TSVector.Transform(ref temp, ref body.invInertiaWorld, out temp);
-                        TSVector.Add(ref temp, ref body.angularVelocity, out body.angularVelocity);
+                        TSVector.Multiply(body.torque, timestep, out temp);
+                        TSVector.Transform(temp, body.invInertiaWorld, out temp);
+                        TSVector.Add(temp, body.angularVelocity, out body.angularVelocity);
                     }
 
                     if (body.affectedByGravity)
                     {
-                        TSVector.Multiply(ref gravity, timestep, out temp);
-                        TSVector.Add(ref body.linearVelocity, ref temp, out body.linearVelocity);
+                        TSVector.Multiply(gravity, timestep, out temp);
+                        TSVector.Add(body.linearVelocity, temp, out body.linearVelocity);
                     }
                 }
 
@@ -813,8 +811,8 @@ namespace TrueSync.Physics3D
             RigidBody body = obj as RigidBody;
 
             TSVector temp;
-            TSVector.Multiply(ref body.linearVelocity, timestep, out temp);
-            TSVector.Add(ref temp, ref body.position, out body.position);
+            TSVector.Multiply(body.linearVelocity, timestep, out temp);
+            TSVector.Add(temp, body.position, out body.position);
 
             if (!(body.isParticle))
             {
@@ -827,12 +825,12 @@ namespace TrueSync.Physics3D
                 {
                     // use Taylor's expansions of sync function
                     // axis = body.angularVelocity * (FP.Half * timestep - (timestep * timestep * timestep) * (0.020833333333f) * angle * angle);
-					TSVector.Multiply(ref body.angularVelocity, (FP.Half * timestep - (timestep * timestep * timestep) * (2082 * FP.EN6) * angle * angle), out axis);
+					TSVector.Multiply(body.angularVelocity, (FP.Half * timestep - (timestep * timestep * timestep) * (2082 * FP.EN6) * angle * angle), out axis);
                 }
                 else
                 {
                     // sync(fAngle) = sin(c*fAngle)/t
-                    TSVector.Multiply(ref body.angularVelocity, (FP.Sin(FP.Half * angle * timestep) / angle), out axis);
+                    TSVector.Multiply(body.angularVelocity, (FP.Sin(FP.Half * angle * timestep) / angle), out axis);
                 }
 
                 TSQuaternion dorn = new TSQuaternion(axis.x, axis.y, axis.z, FP.Cos(angle * timestep * FP.Half));
@@ -866,7 +864,7 @@ namespace TrueSync.Physics3D
             for (int index = 0, length = rigidBodies.Count; index < length; index++) {
                 RigidBody body = rigidBodies[index];
                 if (body.isStatic || !body.IsActive) continue;
-                integrateCallback(body);
+                IntegrateCallback(body);
             }
         }
 
@@ -895,6 +893,9 @@ namespace TrueSync.Physics3D
         }
 
         private void CollisionDetected(RigidBody body1, RigidBody body2, TSVector point1, TSVector point2, TSVector normal, FP penetration) {
+            //UnityEngine.Debug.Break();
+            //UnityEngine.Debug.Log($"{body1.GetHashCode()} --> {body2.GetHashCode()}");
+
             bool anyBodyColliderOnly = body1.IsColliderOnly || body2.IsColliderOnly;
 
             Arbiter arbiter = null;
@@ -921,7 +922,7 @@ namespace TrueSync.Physics3D
             Contact contact = null;
 
             if (arbiter.body1 == body1) {
-                TSVector.Negate(ref normal, out normal);
+                TSVector.Negate(normal, out normal);
                 contact = arbiter.AddContact(point1, point2, normal, penetration, contactSettings);
             } else {
                 contact = arbiter.AddContact(point2, point1, normal, penetration, contactSettings);

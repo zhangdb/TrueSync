@@ -86,8 +86,8 @@ namespace TrueSync.Physics3D {
 
             if (FP.Abs(direction.y) > FP.Zero)
             {
-                TSVector dir; TSVector.Normalize(ref direction, out dir);
-                TSVector.Multiply(ref dir, radius, out result);
+                TSVector dir; TSVector.Normalize(direction, out dir);
+                TSVector.Multiply(dir, radius, out result);
                 result.y += FP.Sign(direction.y) * FP.Half * length;              
             }
             else if (r > FP.Zero)

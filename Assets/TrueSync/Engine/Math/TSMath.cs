@@ -149,8 +149,9 @@ namespace TrueSync {
         /// </summary>
         /// <param name="matrix">The matrix.</param>
         /// <param name="result">The absolute matrix.</param>
+
         #region public static void Absolute(ref JMatrix matrix,out JMatrix result)
-        public static void Absolute(ref TSMatrix matrix, out TSMatrix result) {
+        public static void Absolute(TSMatrix matrix, out TSMatrix result) {
             result.M11 = FP.Abs(matrix.M11);
             result.M12 = FP.Abs(matrix.M12);
             result.M13 = FP.Abs(matrix.M13);

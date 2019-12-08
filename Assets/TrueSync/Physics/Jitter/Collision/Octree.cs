@@ -170,15 +170,15 @@ namespace TrueSync.Physics3D {
 
             for (int i = 0; i < tris.Length; i++)
             {
-                TSVector.Min(ref positions[tris[i].I1], ref positions[tris[i].I2], out triBoxes[i].min);
-                TSVector.Min(ref positions[tris[i].I0], ref triBoxes[i].min, out triBoxes[i].min);
+                TSVector.Min(positions[tris[i].I1], positions[tris[i].I2], out triBoxes[i].min);
+                TSVector.Min(positions[tris[i].I0], triBoxes[i].min, out triBoxes[i].min);
 
-                TSVector.Max(ref positions[tris[i].I1], ref positions[tris[i].I2], out triBoxes[i].max);
-                TSVector.Max(ref positions[tris[i].I0], ref triBoxes[i].max, out triBoxes[i].max);
+                TSVector.Max(positions[tris[i].I1], positions[tris[i].I2], out triBoxes[i].max);
+                TSVector.Max(positions[tris[i].I0], triBoxes[i].max, out triBoxes[i].max);
 
                 // get size of the root box
-                TSVector.Min(ref rootNodeBox.min, ref triBoxes[i].min, out rootNodeBox.min);
-                TSVector.Max(ref rootNodeBox.max, ref triBoxes[i].max, out rootNodeBox.max);
+                TSVector.Min(rootNodeBox.min, triBoxes[i].min, out rootNodeBox.min);
+                TSVector.Max(rootNodeBox.max, triBoxes[i].max, out rootNodeBox.max);
             }
 
             List<BuildNode> buildNodes = new List<BuildNode>();
@@ -289,8 +289,8 @@ namespace TrueSync.Physics3D {
         private void CreateAABox(ref TSBBox aabb, EChild child,out TSBBox result)
         {
             TSVector dims;
-            TSVector.Subtract(ref aabb.max, ref aabb.min, out dims);
-            TSVector.Multiply(ref dims, FP.Half, out dims);
+            TSVector.Subtract(aabb.max, aabb.min, out dims);
+            TSVector.Multiply(dims, FP.Half, out dims);
 
             TSVector offset = TSVector.zero;
 
@@ -312,16 +312,16 @@ namespace TrueSync.Physics3D {
 
             result = new TSBBox();
             result.min = new TSVector(offset.x * dims.x, offset.y * dims.y, offset.z * dims.z);
-            TSVector.Add(ref result.min, ref aabb.min, out result.min);
+            TSVector.Add(result.min, aabb.min, out result.min);
 
-            TSVector.Add(ref result.min, ref dims, out result.max);
+            TSVector.Add(result.min, dims, out result.max);
 
             // expand it just a tiny bit just to be safe!
             FP extra = FP.EN5;
 
-            TSVector temp; TSVector.Multiply(ref dims, extra, out temp);
-            TSVector.Subtract(ref result.min, ref temp, out result.min);
-            TSVector.Add(ref result.max, ref temp, out result.max);
+            TSVector temp; TSVector.Multiply(dims, extra, out temp);
+            TSVector.Subtract(result.min, temp, out result.min);
+            TSVector.Add(result.max, temp, out result.max);
         }
         #endregion
 

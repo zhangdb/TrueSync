@@ -516,7 +516,7 @@ namespace TrueSync {
             if (tsCollider != null) {
                 if (tsCollider.IsBodyInitialized) {
                     tsCollider.Body.TSPosition = _position + scaledCenter;
-                    tsCollider.Body.TSOrientation = TSMatrix.CreateFromQuaternion(_rotation);
+                    tsCollider.Body.TSOrientation = transform.rotation.ToTSMatrix();
                 }
             } else {
                 StateTracker.AddTracking(this);
@@ -563,8 +563,12 @@ namespace TrueSync {
                 _localRotation = rotation;
             }
 
-            if (rb != null) {
-                if (rb.interpolation == TSRigidBody.InterpolateMode.Interpolate) {
+            if (rb != null)
+            {
+                transform.position = position.ToVector();
+                transform.rotation = rotation.ToQuaternion();
+                transform.localScale = localScale.ToVector();
+                /*if (rb.interpolation == TSRigidBody.InterpolateMode.Interpolate) {
                     transform.position = Vector3.Lerp(transform.position, position.ToVector(), Time.deltaTime * DELTA_TIME_FACTOR);
                     transform.rotation = Quaternion.Lerp(transform.rotation, rotation.ToQuaternion(), Time.deltaTime * DELTA_TIME_FACTOR);
                     transform.localScale = Vector3.Lerp(transform.localScale, localScale.ToVector(), Time.deltaTime * DELTA_TIME_FACTOR);
@@ -574,8 +578,8 @@ namespace TrueSync {
                     transform.rotation = Quaternion.Lerp(transform.rotation, rotation.ToQuaternion(), Time.deltaTime * DELTA_TIME_FACTOR);
                     transform.localScale = Vector3.Lerp(transform.localScale, localScale.ToVector(), Time.deltaTime * DELTA_TIME_FACTOR);
                     return;
-                }
-			}
+                }*/
+            }
 
             transform.position = position.ToVector();
             transform.rotation = rotation.ToQuaternion();

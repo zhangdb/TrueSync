@@ -151,7 +151,6 @@ namespace TrueSync.Physics3D {
         /// <summary>
         /// Calculates relative velocity of body contact points on the bodies.
         /// </summary>
-        /// <param name="relVel">The relative velocity of body contact points on the bodies.</param>
         public TSVector CalculateRelativeVelocity()
         {
             FP x, y, z;
@@ -224,7 +223,7 @@ namespace TrueSync.Physics3D {
 
             // Apply contact impulse
             TSVector impulse = normal * normalImpulse + tangent * tangentImpulse;
-            ApplyImpulse(ref impulse);
+            ApplyImpulse(impulse);
 
         }
 
@@ -239,101 +238,33 @@ namespace TrueSync.Physics3D {
         {
             if (body1IsMassPoint)
             {
-                TSVector.Add(ref realRelPos1, ref body1.position, out p1);
+                TSVector.Add(realRelPos1, body1.position, out p1);
             }
             else
             {
-                TSVector.Transform(ref realRelPos1, ref body1.orientation, out p1);
-                TSVector.Add(ref p1, ref body1.position, out p1);
+                TSVector.Transform(realRelPos1, body1.orientation, out p1);
+                TSVector.Add(p1, body1.position, out p1);
             }
 
             if (body2IsMassPoint)
             {
-                TSVector.Add(ref realRelPos2, ref body2.position, out p2);
+                TSVector.Add(realRelPos2, body2.position, out p2);
             }
             else
             {
-                TSVector.Transform(ref realRelPos2, ref body2.orientation, out p2);
-                TSVector.Add(ref p2, ref body2.position, out p2);
+                TSVector.Transform(realRelPos2, body2.orientation, out p2);
+                TSVector.Add(p2, body2.position, out p2);
             }
 
 
-            TSVector dist; TSVector.Subtract(ref p1, ref p2, out dist);
-            penetration = TSVector.Dot(ref dist, ref normal);
+            TSVector dist; TSVector.Subtract(p1, p2, out dist);
+            penetration = TSVector.Dot(dist, normal);
         }
 
         /// <summary>
         /// An impulse is applied an both contact points.
         /// </summary>
         /// <param name="impulse">The impulse to apply.</param>
-        public void ApplyImpulse(ref TSVector impulse)
-        {
-            #region INLINE - HighFrequency
-            //JVector temp;
-
-            if (!treatBody1AsStatic)
-            {
-                body1.linearVelocity.x -= (impulse.x * body1.inverseMass);
-                body1.linearVelocity.y -= (impulse.y * body1.inverseMass);
-                body1.linearVelocity.z -= (impulse.z * body1.inverseMass);
-
-                FP num0, num1, num2;
-                num0 = relativePos1.y * impulse.z - relativePos1.z * impulse.y;
-                num1 = relativePos1.z * impulse.x - relativePos1.x * impulse.z;
-                num2 = relativePos1.x * impulse.y - relativePos1.y * impulse.x;
-
-                FP num3 =
-                    (((num0 * body1.invInertiaWorld.M11) +
-                    (num1 * body1.invInertiaWorld.M21)) +
-                    (num2 * body1.invInertiaWorld.M31));
-                FP num4 =
-                    (((num0 * body1.invInertiaWorld.M12) +
-                    (num1 * body1.invInertiaWorld.M22)) +
-                    (num2 * body1.invInertiaWorld.M32));
-                FP num5 =
-                    (((num0 * body1.invInertiaWorld.M13) +
-                    (num1 * body1.invInertiaWorld.M23)) +
-                    (num2 * body1.invInertiaWorld.M33));
-
-                body1.angularVelocity.x -= num3;
-                body1.angularVelocity.y -= num4;
-                body1.angularVelocity.z -= num5;
-            }
-
-            if (!treatBody2AsStatic)
-            {
-
-                body2.linearVelocity.x += (impulse.x * body2.inverseMass);
-                body2.linearVelocity.y += (impulse.y * body2.inverseMass);
-                body2.linearVelocity.z += (impulse.z * body2.inverseMass);
-
-                FP num0, num1, num2;
-                num0 = relativePos2.y * impulse.z - relativePos2.z * impulse.y;
-                num1 = relativePos2.z * impulse.x - relativePos2.x * impulse.z;
-                num2 = relativePos2.x * impulse.y - relativePos2.y * impulse.x;
-
-                FP num3 =
-                    (((num0 * body2.invInertiaWorld.M11) +
-                    (num1 * body2.invInertiaWorld.M21)) +
-                    (num2 * body2.invInertiaWorld.M31));
-                FP num4 =
-                    (((num0 * body2.invInertiaWorld.M12) +
-                    (num1 * body2.invInertiaWorld.M22)) +
-                    (num2 * body2.invInertiaWorld.M32));
-                FP num5 =
-                    (((num0 * body2.invInertiaWorld.M13) +
-                    (num1 * body2.invInertiaWorld.M23)) +
-                    (num2 * body2.invInertiaWorld.M33));
-
-                body2.angularVelocity.x += num3;
-                body2.angularVelocity.y += num4;
-                body2.angularVelocity.z += num5;
-            }
-
-
-            #endregion
-        }
-
         public void ApplyImpulse(TSVector impulse)
         {
             #region INLINE - HighFrequency
@@ -341,9 +272,7 @@ namespace TrueSync.Physics3D {
 
             if (!treatBody1AsStatic)
             {
-                body1.linearVelocity.x -= (impulse.x * body1.inverseMass);
-                body1.linearVelocity.y -= (impulse.y * body1.inverseMass);
-                body1.linearVelocity.z -= (impulse.z * body1.inverseMass);
+                body1.ApplyImpulse(-impulse);
 
                 FP num0, num1, num2;
                 num0 = relativePos1.y * impulse.z - relativePos1.z * impulse.y;
@@ -371,9 +300,7 @@ namespace TrueSync.Physics3D {
             if (!treatBody2AsStatic)
             {
 
-                body2.linearVelocity.x += (impulse.x * body2.inverseMass);
-                body2.linearVelocity.y += (impulse.y * body2.inverseMass);
-                body2.linearVelocity.z += (impulse.z * body2.inverseMass);
+                body2.ApplyImpulse(impulse);
 
                 FP num0, num1, num2;
                 num0 = relativePos2.y * impulse.z - relativePos2.z * impulse.y;
@@ -401,6 +328,7 @@ namespace TrueSync.Physics3D {
 
             #endregion
         }
+
 
         /// <summary>
         /// PrepareForIteration has to be called before <see cref="Iterate"/>.
@@ -418,9 +346,9 @@ namespace TrueSync.Physics3D {
 
                 if (!body1IsMassPoint)
                 {
-                    TSVector.Cross(ref relativePos1, ref normal, out rantra);
-                    TSVector.Transform(ref rantra, ref body1.invInertiaWorld, out rantra);
-                    TSVector.Cross(ref rantra, ref relativePos1, out rantra);
+                    TSVector.Cross(relativePos1, normal, out rantra);
+                    TSVector.Transform(rantra, body1.invInertiaWorld, out rantra);
+                    TSVector.Cross(rantra, relativePos1, out rantra);
                 }
             }
 
@@ -431,17 +359,17 @@ namespace TrueSync.Physics3D {
 
                 if (!body2IsMassPoint)
                 {
-                    TSVector.Cross(ref relativePos2, ref normal, out rbntrb);
-                    TSVector.Transform(ref rbntrb, ref body2.invInertiaWorld, out rbntrb);
-                    TSVector.Cross(ref rbntrb, ref relativePos2, out rbntrb);
+                    TSVector.Cross(relativePos2, normal, out rbntrb);
+                    TSVector.Transform(rbntrb, body2.invInertiaWorld, out rbntrb);
+                    TSVector.Cross(rbntrb, relativePos2, out rbntrb);
                 }
             }
 
             if (!treatBody1AsStatic)
-                kNormal += TSVector.Dot(ref rantra, ref normal);
+                kNormal += TSVector.Dot(rantra, normal);
 
             if (!treatBody2AsStatic)
-                kNormal += TSVector.Dot(ref rbntrb, ref normal);
+                kNormal += TSVector.Dot(rbntrb, normal);
 
             massNormal = FP.One / kNormal;
 
@@ -457,9 +385,9 @@ namespace TrueSync.Physics3D {
   
                 if (!body1IsMassPoint)
                 {
-                    TSVector.Cross(ref relativePos1, ref normal, out rantra);
-                    TSVector.Transform(ref rantra, ref body1.invInertiaWorld, out rantra);
-                    TSVector.Cross(ref rantra, ref relativePos1, out rantra);
+                    TSVector.Cross(relativePos1, normal, out rantra);
+                    TSVector.Transform(rantra, body1.invInertiaWorld, out rantra);
+                    TSVector.Cross(rantra, relativePos1, out rantra);
                 }
 
             }
@@ -472,16 +400,16 @@ namespace TrueSync.Physics3D {
 
                 if (!body2IsMassPoint)
                 {
-                    TSVector.Cross(ref relativePos2, ref tangent, out rbntrb);
-                    TSVector.Transform(ref rbntrb, ref body2.invInertiaWorld, out rbntrb);
-                    TSVector.Cross(ref rbntrb, ref relativePos2, out rbntrb);
+                    TSVector.Cross(relativePos2, tangent, out rbntrb);
+                    TSVector.Transform(rbntrb, body2.invInertiaWorld, out rbntrb);
+                    TSVector.Cross(rbntrb, relativePos2, out rbntrb);
                 }
             }
 
             if (!treatBody1AsStatic)
-                kTangent += TSVector.Dot(ref rantra, ref tangent);
+                kTangent += TSVector.Dot(rantra, tangent);
             if (!treatBody2AsStatic)
-                kTangent += TSVector.Dot(ref rbntrb, ref tangent);
+                kTangent += TSVector.Dot(rbntrb, tangent);
 
             massTangent = FP.One / kTangent;
 
@@ -489,7 +417,7 @@ namespace TrueSync.Physics3D {
 
             speculativeVelocity = FP.Zero;
 
-            FP relNormalVel = TSVector.Dot(ref normal, ref dv);
+            FP relNormalVel = TSVector.Dot(normal, dv);
 
             if (Penetration > settings.allowedPenetration)
             {
@@ -505,7 +433,7 @@ namespace TrueSync.Physics3D {
 
             {
                 // Static/Dynamic friction
-                FP relTangentVel = -TSVector.Dot(ref tangent, ref dv);
+                FP relTangentVel = -TSVector.Dot(tangent, dv);
                 FP tangentImpulse = massTangent * relTangentVel;
                 FP maxTangentImpulse = -staticFriction * accumulatedNormalImpulse;
 
@@ -542,7 +470,7 @@ namespace TrueSync.Physics3D {
             }
 
             impulse = normal * accumulatedNormalImpulse + tangent * accumulatedTangentImpulse;
-            ApplyImpulse(ref impulse);
+            ApplyImpulse(impulse);
 
             lastTimeStep = timestep;
 
@@ -574,10 +502,10 @@ namespace TrueSync.Physics3D {
 
             this.newContact = newContact;
 
-            TSVector.Subtract(ref p1, ref body1.position, out relativePos1);
-            TSVector.Subtract(ref p2, ref body2.position, out relativePos2);
-            TSVector.Transform(ref relativePos1, ref body1.invOrientation, out realRelPos1);
-            TSVector.Transform(ref relativePos2, ref body2.invOrientation, out realRelPos2);
+            TSVector.Subtract(p1, body1.position, out relativePos1);
+            TSVector.Subtract(p2, body2.position, out relativePos2);
+            TSVector.Transform(relativePos1, body1.invOrientation, out realRelPos1);
+            TSVector.Transform(relativePos2, body2.invOrientation, out realRelPos2);
 
             this.initialPen = penetration;
             this.penetration = penetration;

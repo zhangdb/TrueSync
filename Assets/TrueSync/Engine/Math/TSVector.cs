@@ -239,7 +239,14 @@ namespace TrueSync
 
             return result;
         }
-
+        public static TSVector operator -(TSVector value)
+        {
+            TSVector result;
+            result.x = -value.x;
+            result.y = -value.y;
+            result.z = -value.z;
+            return result;
+        }
         /// <summary>
         /// Tests if two JVector are equal.
         /// </summary>
@@ -281,7 +288,7 @@ namespace TrueSync
         public static TSVector Min(TSVector value1, TSVector value2)
         {
             TSVector result;
-            TSVector.Min(ref value1, ref value2, out result);
+            TSVector.Min(value1, value2, out result);
             return result;
         }
 
@@ -291,7 +298,7 @@ namespace TrueSync
         /// <param name="value1">The first value.</param>
         /// <param name="value2">The second value.</param>
         /// <param name="result">A vector with the minimum x,y and z values of both vectors.</param>
-        public static void Min(ref TSVector value1, ref TSVector value2, out TSVector result)
+        public static void Min(TSVector value1, TSVector value2, out TSVector result)
         {
             result.x = (value1.x < value2.x) ? value1.x : value2.x;
             result.y = (value1.y < value2.y) ? value1.y : value2.y;
@@ -309,7 +316,7 @@ namespace TrueSync
         public static TSVector Max(TSVector value1, TSVector value2)
         {
             TSVector result;
-            TSVector.Max(ref value1, ref value2, out result);
+            TSVector.Max(value1, value2, out result);
             return result;
         }
 		
@@ -323,7 +330,7 @@ namespace TrueSync
         /// <param name="value1">The first value.</param>
         /// <param name="value2">The second value.</param>
         /// <param name="result">A vector with the maximum x,y and z values of both vectors.</param>
-        public static void Max(ref TSVector value1, ref TSVector value2, out TSVector result)
+        public static void Max(TSVector value1, TSVector value2, out TSVector result)
         {
             result.x = (value1.x > value2.x) ? value1.x : value2.x;
             result.y = (value1.y > value2.y) ? value1.y : value2.y;
@@ -373,7 +380,7 @@ namespace TrueSync
         public static TSVector Transform(TSVector position, TSMatrix matrix)
         {
             TSVector result;
-            TSVector.Transform(ref position, ref matrix, out result);
+            TSVector.Transform(position, matrix, out result);
             return result;
         }
 
@@ -383,7 +390,7 @@ namespace TrueSync
         /// <param name="position">The vector to transform.</param>
         /// <param name="matrix">The transform matrix.</param>
         /// <param name="result">The transformed vector.</param>
-        public static void Transform(ref TSVector position, ref TSMatrix matrix, out TSVector result)
+        public static void Transform(TSVector position, TSMatrix matrix, out TSVector result)
         {
             FP num0 = ((position.x * matrix.M11) + (position.y * matrix.M21)) + (position.z * matrix.M31);
             FP num1 = ((position.x * matrix.M12) + (position.y * matrix.M22)) + (position.z * matrix.M32);
@@ -400,7 +407,7 @@ namespace TrueSync
         /// <param name="position">The vector to transform.</param>
         /// <param name="matrix">The transform matrix.</param>
         /// <param name="result">The transformed vector.</param>
-        public static void TransposedTransform(ref TSVector position, ref TSMatrix matrix, out TSVector result)
+        public static void TransposedTransform(TSVector position, TSMatrix matrix, out TSVector result)
         {
             FP num0 = ((position.x * matrix.M11) + (position.y * matrix.M12)) + (position.z * matrix.M13);
             FP num1 = ((position.x * matrix.M21) + (position.y * matrix.M22)) + (position.z * matrix.M23);
@@ -412,26 +419,15 @@ namespace TrueSync
         }
         #endregion
 
-        /// <summary>
-        /// Calculates the dot product of two vectors.
-        /// </summary>
-        /// <param name="vector1">The first vector.</param>
-        /// <param name="vector2">The second vector.</param>
-        /// <returns>Returns the dot product of both vectors.</returns>
-        #region public static FP Dot(JVector vector1, JVector vector2)
-        public static FP Dot(TSVector vector1, TSVector vector2)
-        {
-            return TSVector.Dot(ref vector1, ref vector2);
-        }
-
-
+ #region public static FP Dot(JVector vector1, JVector vector2)
+    
         /// <summary>
         /// Calculates the dot product of both vectors.
         /// </summary>
         /// <param name="vector1">The first vector.</param>
         /// <param name="vector2">The second vector.</param>
         /// <returns>Returns the dot product of both vectors.</returns>
-        public static FP Dot(ref TSVector vector1, ref TSVector vector2)
+        public static FP Dot(TSVector vector1, TSVector vector2)
         {
             return ((vector1.x * vector2.x) + (vector1.y * vector2.y)) + (vector1.z * vector2.z);
         }
@@ -481,7 +477,7 @@ namespace TrueSync
         public static TSVector Add(TSVector value1, TSVector value2)
         {
             TSVector result;
-            TSVector.Add(ref value1, ref value2, out result);
+            TSVector.Add(value1, value2, out result);
             return result;
         }
 
@@ -491,7 +487,7 @@ namespace TrueSync
         /// <param name="value1">The first vector.</param>
         /// <param name="value2">The second vector.</param>
         /// <param name="result">The sum of both vectors.</param>
-        public static void Add(ref TSVector value1, ref TSVector value2, out TSVector result)
+        public static void Add(TSVector value1, TSVector value2, out TSVector result)
         {
             FP num0 = value1.x + value2.x;
             FP num1 = value1.y + value2.y;
@@ -511,7 +507,7 @@ namespace TrueSync
         /// <returns>Returns the scaled vector.</returns>
         public static TSVector Divide(TSVector value1, FP scaleFactor) {
             TSVector result;
-            TSVector.Divide(ref value1, scaleFactor, out result);
+            TSVector.Divide(value1, scaleFactor, out result);
             return result;
         }
 
@@ -521,7 +517,7 @@ namespace TrueSync
         /// <param name="value1">The vector to divide.</param>
         /// <param name="scaleFactor">The scale factor.</param>
         /// <param name="result">Returns the scaled vector.</param>
-        public static void Divide(ref TSVector value1, FP scaleFactor, out TSVector result) {
+        public static void Divide(TSVector value1, FP scaleFactor, out TSVector result) {
             result.x = value1.x / scaleFactor;
             result.y = value1.y / scaleFactor;
             result.z = value1.z / scaleFactor;
@@ -537,7 +533,7 @@ namespace TrueSync
         public static TSVector Subtract(TSVector value1, TSVector value2)
         {
             TSVector result;
-            TSVector.Subtract(ref value1, ref value2, out result);
+            TSVector.Subtract(value1, value2, out result);
             return result;
         }
 
@@ -547,7 +543,7 @@ namespace TrueSync
         /// <param name="value1">The first vector.</param>
         /// <param name="value2">The second vector.</param>
         /// <param name="result">The difference of both vectors.</param>
-        public static void Subtract(ref TSVector value1, ref TSVector value2, out TSVector result)
+        public static void Subtract(TSVector value1, TSVector value2, out TSVector result)
         {
             FP num0 = value1.x - value2.x;
             FP num1 = value1.y - value2.y;
@@ -569,7 +565,7 @@ namespace TrueSync
         public static TSVector Cross(TSVector vector1, TSVector vector2)
         {
             TSVector result;
-            TSVector.Cross(ref vector1, ref vector2, out result);
+            TSVector.Cross(vector1, vector2, out result);
             return result;
         }
 
@@ -579,7 +575,7 @@ namespace TrueSync
         /// <param name="vector1">The first vector.</param>
         /// <param name="vector2">The second vector.</param>
         /// <param name="result">The cross product of both vectors.</param>
-        public static void Cross(ref TSVector vector1, ref TSVector vector2, out TSVector result)
+        public static void Cross(TSVector vector1, TSVector vector2, out TSVector result)
         {
             FP num3 = (vector1.y * vector2.z) - (vector1.z * vector2.y);
             FP num2 = (vector1.z * vector2.x) - (vector1.x * vector2.z);
@@ -620,7 +616,7 @@ namespace TrueSync
         public static TSVector Negate(TSVector value)
         {
             TSVector result;
-            TSVector.Negate(ref value,out result);
+            TSVector.Negate(value,out result);
             return result;
         }
 
@@ -629,7 +625,7 @@ namespace TrueSync
         /// </summary>
         /// <param name="value">The vector to inverse.</param>
         /// <param name="result">The negated vector.</param>
-        public static void Negate(ref TSVector value, out TSVector result)
+        public static void Negate(TSVector value, out TSVector result)
         {
             FP num0 = -value.x;
             FP num1 = -value.y;
@@ -650,7 +646,7 @@ namespace TrueSync
         public static TSVector Normalize(TSVector value)
         {
             TSVector result;
-            TSVector.Normalize(ref value, out result);
+            TSVector.Normalize(value, out result);
             return result;
         }
 
@@ -671,7 +667,7 @@ namespace TrueSync
         /// </summary>
         /// <param name="value">The vector which should be normalized.</param>
         /// <param name="result">A normalized vector.</param>
-        public static void Normalize(ref TSVector value, out TSVector result)
+        public static void Normalize(TSVector value, out TSVector result)
         {
             FP num2 = ((value.x * value.x) + (value.y * value.y)) + (value.z * value.z);
             FP num = FP.One / FP.Sqrt(num2);
@@ -716,7 +712,7 @@ namespace TrueSync
         public static TSVector Multiply(TSVector value1, FP scaleFactor)
         {
             TSVector result;
-            TSVector.Multiply(ref value1, scaleFactor, out result);
+            TSVector.Multiply(value1, scaleFactor, out result);
             return result;
         }
 
@@ -726,7 +722,7 @@ namespace TrueSync
         /// <param name="value1">The vector to multiply.</param>
         /// <param name="scaleFactor">The scale factor.</param>
         /// <param name="result">Returns the multiplied vector.</param>
-        public static void Multiply(ref TSVector value1, FP scaleFactor, out TSVector result)
+        public static void Multiply(TSVector value1, FP scaleFactor, out TSVector result)
         {
             result.x = value1.x * scaleFactor;
             result.y = value1.y * scaleFactor;
@@ -743,7 +739,7 @@ namespace TrueSync
         #region public static JVector operator %(JVector value1, JVector value2)
         public static TSVector operator %(TSVector value1, TSVector value2)
         {
-            TSVector result; TSVector.Cross(ref value1, ref value2, out result);
+            TSVector result; TSVector.Cross(value1, value2, out result);
             return result;
         }
         #endregion
@@ -757,7 +753,7 @@ namespace TrueSync
         #region public static FP operator *(JVector value1, JVector value2)
         public static FP operator *(TSVector value1, TSVector value2)
         {
-            return TSVector.Dot(ref value1, ref value2);
+            return TSVector.Dot(value1, value2);
         }
         #endregion
 
@@ -771,7 +767,7 @@ namespace TrueSync
         public static TSVector operator *(TSVector value1, FP value2)
         {
             TSVector result;
-            TSVector.Multiply(ref value1, value2,out result);
+            TSVector.Multiply(value1, value2,out result);
             return result;
         }
         #endregion
@@ -786,7 +782,7 @@ namespace TrueSync
         public static TSVector operator *(FP value1, TSVector value2)
         {
             TSVector result;
-            TSVector.Multiply(ref value2, value1, out result);
+            TSVector.Multiply(value2, value1, out result);
             return result;
         }
         #endregion
@@ -800,7 +796,7 @@ namespace TrueSync
         #region public static JVector operator -(JVector value1, JVector value2)
         public static TSVector operator -(TSVector value1, TSVector value2)
         {
-            TSVector result; TSVector.Subtract(ref value1, ref value2, out result);
+            TSVector result; TSVector.Subtract(value1, value2, out result);
             return result;
         }
         #endregion
@@ -814,7 +810,7 @@ namespace TrueSync
         #region public static JVector operator +(JVector value1, JVector value2)
         public static TSVector operator +(TSVector value1, TSVector value2)
         {
-            TSVector result; TSVector.Add(ref value1, ref value2, out result);
+            TSVector result; TSVector.Add(value1, value2, out result);
             return result;
         }
         #endregion
@@ -827,7 +823,7 @@ namespace TrueSync
         /// <returns>Returns the scaled vector.</returns>
         public static TSVector operator /(TSVector value1, FP value2) {
             TSVector result;
-            TSVector.Divide(ref value1, value2, out result);
+            TSVector.Divide(value1, value2, out result);
             return result;
         }
 

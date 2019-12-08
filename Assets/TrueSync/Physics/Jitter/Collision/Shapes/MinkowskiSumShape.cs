@@ -77,10 +77,10 @@ namespace TrueSync.Physics3D {
             for (int i = 0; i < shapes.Count; i++)
             {
                 shapes[i].SupportMapping(ref direction, out temp1);
-                TSVector.Add(ref temp1, ref temp2, out temp2);
+                TSVector.Add(temp1, temp2, out temp2);
             }
 
-            TSVector.Subtract(ref temp2, ref shifted, out result);
+            TSVector.Subtract(temp2, shifted, out result);
         }
 
     }

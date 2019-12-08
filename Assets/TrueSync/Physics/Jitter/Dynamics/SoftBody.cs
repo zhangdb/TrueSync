@@ -112,7 +112,7 @@ namespace TrueSync.Physics3D {
             public override void PrepareForIteration(FP timestep)
             {
                 TSVector dp;
-                TSVector.Subtract(ref body2.position, ref body1.position, out dp);
+                TSVector.Subtract(body2.position, body1.position, out dp);
 
                 FP deltaLength = dp.magnitude - distance;
 
@@ -147,12 +147,12 @@ namespace TrueSync.Physics3D {
 
                     if (!body1.isStatic)
                     {
-                        body1.linearVelocity += body1.inverseMass * accumulatedImpulse * jacobian[0];
+                        body1.ApplyImpulse(accumulatedImpulse * jacobian[0]);
                     }
 
                     if (!body2.isStatic)
                     {
-                        body2.linearVelocity += body2.inverseMass * accumulatedImpulse * jacobian[1];
+                        body2.ApplyImpulse(accumulatedImpulse * jacobian[1]);
                     }
                 }
 
@@ -165,8 +165,8 @@ namespace TrueSync.Physics3D {
             {
                 if (skipConstraint) return;
 
-                FP jv = TSVector.Dot(ref body1.linearVelocity, ref jacobian[0]);
-                jv += TSVector.Dot(ref body2.linearVelocity, ref jacobian[1]);
+                FP jv = TSVector.Dot(body1.linearVelocity, jacobian[0]);
+                jv += TSVector.Dot(body2.linearVelocity, jacobian[1]);
 
                 FP softnessScalar = accumulatedImpulse * softnessOverDt;
 
@@ -193,14 +193,12 @@ namespace TrueSync.Physics3D {
 
                 if (!body1.isStatic)
                 {
-                    TSVector.Multiply(ref jacobian[0], lambda * body1.inverseMass, out temp);
-                    TSVector.Add(ref temp, ref body1.linearVelocity, out body1.linearVelocity);
+                    body1.ApplyImpulse(jacobian[0] * lambda);
                 }
 
                 if (!body2.isStatic)
                 {
-                    TSVector.Multiply(ref jacobian[1], lambda * body2.inverseMass, out temp);
-                    TSVector.Add(ref temp, ref body2.linearVelocity, out body2.linearVelocity);
+                    body2.ApplyImpulse(jacobian[1] * lambda);
                 }
             }
 
@@ -255,17 +253,17 @@ namespace TrueSync.Physics3D {
             public void GetNormal(out TSVector normal)
             {
                 TSVector sum;
-                TSVector.Subtract(ref owner.points[indices.I1].position, ref owner.points[indices.I0].position, out sum);
-                TSVector.Subtract(ref owner.points[indices.I2].position, ref owner.points[indices.I0].position, out normal);
-                TSVector.Cross(ref sum, ref normal, out normal);
+                TSVector.Subtract(owner.points[indices.I1].position, owner.points[indices.I0].position, out sum);
+                TSVector.Subtract(owner.points[indices.I2].position, owner.points[indices.I0].position, out normal);
+                TSVector.Cross(sum, normal, out normal);
             }
 
             public void UpdateBoundingBox()
             {
                 boundingBox = TSBBox.SmallBox;
-                boundingBox.AddPoint(ref owner.points[indices.I0].position);
-                boundingBox.AddPoint(ref owner.points[indices.I1].position);
-                boundingBox.AddPoint(ref owner.points[indices.I2].position);
+                boundingBox.AddPoint(owner.points[indices.I0].position);
+                boundingBox.AddPoint(owner.points[indices.I1].position);
+                boundingBox.AddPoint(owner.points[indices.I2].position);
 
                 boundingBox.min -= new TSVector(owner.triangleExpansion);
                 boundingBox.max += new TSVector(owner.triangleExpansion);
@@ -280,8 +278,8 @@ namespace TrueSync.Physics3D {
             public void SupportMapping(ref TSVector direction, out TSVector result)
             {
 
-                FP min = TSVector.Dot(ref owner.points[indices.I0].position, ref direction);
-                FP dot = TSVector.Dot(ref owner.points[indices.I1].position, ref direction);
+                FP min = TSVector.Dot(owner.points[indices.I0].position, direction);
+                FP dot = TSVector.Dot(owner.points[indices.I1].position, direction);
 
                 TSVector minVertex = owner.points[indices.I0].position;
 
@@ -290,7 +288,7 @@ namespace TrueSync.Physics3D {
                     min = dot;
                     minVertex = owner.points[indices.I1].position;
                 }
-                dot = TSVector.Dot(ref owner.points[indices.I2].position, ref direction);
+                dot = TSVector.Dot(owner.points[indices.I2].position, direction);
                 if (dot > min)
                 {
                     min = dot;
@@ -299,7 +297,7 @@ namespace TrueSync.Physics3D {
 
 
                 TSVector exp;
-                TSVector.Normalize(ref direction, out exp);
+                TSVector.Normalize(direction, out exp);
                 exp *= owner.triangleExpansion;
                 result = minVertex + exp;
 
@@ -309,9 +307,9 @@ namespace TrueSync.Physics3D {
             public void SupportCenter(out TSVector center)
             {
                 center = owner.points[indices.I0].position;
-                TSVector.Add(ref center, ref owner.points[indices.I1].position, out center);
-                TSVector.Add(ref center, ref owner.points[indices.I2].position, out center);
-                TSVector.Multiply(ref center, FP.One / (3 * FP.One), out center);
+                TSVector.Add(center, owner.points[indices.I1].position, out center);
+                TSVector.Add(center, owner.points[indices.I2].position, out center);
+                TSVector.Multiply(center, FP.One / (3 * FP.One), out center);
             }
         }
         #endregion
@@ -572,8 +570,8 @@ namespace TrueSync.Physics3D {
 
                     if (!(t.VertexBody1 == points[i] || t.VertexBody2 == points[i] || t.VertexBody3 == points[i]))
                     {
-                        if (XenoCollide.Detect(points[i].Shape, t, ref points[i].orientation,
-                            ref TSMatrix.InternalIdentity, ref points[i].position, ref TSVector.InternalZero,
+                        if (XenoCollide.Detect(points[i].Shape, t, points[i].orientation,
+                            TSMatrix.InternalIdentity, points[i].position, TSVector.InternalZero,
                             out point, out normal, out penetration))
                         {
                             int nearest = CollisionSystem.FindNearestTrianglePoint(this, queryList[e], ref point);

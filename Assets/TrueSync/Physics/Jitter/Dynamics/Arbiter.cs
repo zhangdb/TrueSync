@@ -187,7 +187,7 @@ namespace TrueSync.Physics3D {
             ContactSettings contactSettings)
         {
             TSVector relPos1;
-            TSVector.Subtract(ref point1, ref body1.position, out relPos1);
+            TSVector.Subtract(point1, body1.position, out relPos1);
 
             int index;
 
@@ -235,7 +235,7 @@ namespace TrueSync.Physics3D {
             int nearestPoint = -1;
             for (int i = 0; i < size; i++)
             {
-                TSVector diffA; TSVector.Subtract(ref contactList[i].relativePos1,ref realRelPos1,out diffA);
+                TSVector diffA; TSVector.Subtract(contactList[i].relativePos1,realRelPos1,out diffA);
                 FP distToManiPoint = diffA.sqrMagnitude;
                 if (distToManiPoint < shortestDist)
                 {
@@ -266,32 +266,32 @@ namespace TrueSync.Physics3D {
             FP res0 = 0, res1 = 0, res2 = 0, res3 = 0;
             if (maxPenetrationIndex != 0)
             {
-                TSVector a0; TSVector.Subtract(ref realRelPos1,ref contactList[1].relativePos1,out a0);
-                TSVector b0; TSVector.Subtract(ref contactList[3].relativePos1, ref contactList[2].relativePos1, out b0);
-                TSVector cross; TSVector.Cross(ref a0, ref b0, out cross);
+                TSVector a0; TSVector.Subtract(realRelPos1,contactList[1].relativePos1,out a0);
+                TSVector b0; TSVector.Subtract(contactList[3].relativePos1, contactList[2].relativePos1, out b0);
+                TSVector cross; TSVector.Cross(a0, b0, out cross);
                 res0 = cross.sqrMagnitude;
             }
             if (maxPenetrationIndex != 1)
             {
-                TSVector a0; TSVector.Subtract(ref realRelPos1, ref contactList[0].relativePos1, out a0);
-                TSVector b0; TSVector.Subtract(ref contactList[3].relativePos1, ref contactList[2].relativePos1, out b0);
-                TSVector cross; TSVector.Cross(ref a0, ref b0, out cross);
+                TSVector a0; TSVector.Subtract(realRelPos1, contactList[0].relativePos1, out a0);
+                TSVector b0; TSVector.Subtract(contactList[3].relativePos1, contactList[2].relativePos1, out b0);
+                TSVector cross; TSVector.Cross(a0, b0, out cross);
                 res1 = cross.sqrMagnitude;
             }
 
             if (maxPenetrationIndex != 2)
             {
-                TSVector a0; TSVector.Subtract(ref realRelPos1, ref contactList[0].relativePos1, out a0);
-                TSVector b0; TSVector.Subtract(ref contactList[3].relativePos1, ref contactList[1].relativePos1, out b0);
-                TSVector cross; TSVector.Cross(ref a0, ref b0, out cross);
+                TSVector a0; TSVector.Subtract(realRelPos1, contactList[0].relativePos1, out a0);
+                TSVector b0; TSVector.Subtract(contactList[3].relativePos1, contactList[1].relativePos1, out b0);
+                TSVector cross; TSVector.Cross(a0, b0, out cross);
                 res2 = cross.sqrMagnitude;
             }
 
             if (maxPenetrationIndex != 3)
             {
-                TSVector a0; TSVector.Subtract(ref realRelPos1, ref contactList[0].relativePos1, out a0);
-                TSVector b0; TSVector.Subtract(ref contactList[2].relativePos1, ref contactList[1].relativePos1, out b0);
-                TSVector cross; TSVector.Cross(ref a0, ref b0, out cross);
+                TSVector a0; TSVector.Subtract(realRelPos1, contactList[0].relativePos1, out a0);
+                TSVector b0; TSVector.Subtract(contactList[2].relativePos1, contactList[1].relativePos1, out b0);
+                TSVector cross; TSVector.Cross(a0, b0, out cross);
                 res3 = cross.sqrMagnitude;
             }
 

@@ -121,7 +121,7 @@ namespace TrueSync.Physics3D {
 
             #region Expand Spherical
             TSVector expDelta;
-            TSVector.Normalize(ref rayDelta, out expDelta);
+            TSVector.Normalize(rayDelta, out expDelta);
             expDelta = rayDelta + expDelta * sphericalExpansion;
             #endregion
 
@@ -142,18 +142,18 @@ namespace TrueSync.Physics3D {
         public override void SupportMapping(ref TSVector direction, out TSVector result)
         {
             TSVector exp;
-            TSVector.Normalize(ref direction, out exp);
+            TSVector.Normalize(direction, out exp);
             exp *= sphericalExpansion;
 
-            FP min = TSVector.Dot(ref vecs[0], ref direction);
+            FP min = TSVector.Dot(vecs[0], direction);
             int minIndex = 0;
-            FP dot = TSVector.Dot(ref vecs[1], ref direction);
+            FP dot = TSVector.Dot(vecs[1], direction);
             if (dot > min)
             {
                 min = dot;
                 minIndex = 1;
             }
-            dot = TSVector.Dot(ref vecs[2], ref direction);
+            dot = TSVector.Dot(vecs[2], direction);
             if (dot > min)
             {
                 min = dot;
@@ -200,16 +200,16 @@ namespace TrueSync.Physics3D {
             vecs[2] = octree.GetVertex(octree.tris[potentialTriangles[index]].I2);
 
             TSVector sum = vecs[0];
-            TSVector.Add(ref sum, ref vecs[1], out sum);
-            TSVector.Add(ref sum, ref vecs[2], out sum);
-            TSVector.Multiply(ref sum, FP.One / (3 * FP.One), out sum);
+            TSVector.Add(sum, vecs[1], out sum);
+            TSVector.Add(sum, vecs[2], out sum);
+            TSVector.Multiply(sum, FP.One / (3 * FP.One), out sum);
 
       
             geomCen = sum;
 
-            TSVector.Subtract(ref vecs[1], ref vecs[0], out sum);
-            TSVector.Subtract(ref vecs[2], ref vecs[0], out normal);
-            TSVector.Cross(ref sum, ref normal, out normal);
+            TSVector.Subtract(vecs[1], vecs[0], out sum);
+            TSVector.Subtract(vecs[2], vecs[0], out normal);
+            TSVector.Cross(sum, normal, out normal);
             normal.Normalize();
             if (flipNormal) normal.Negate();
         }

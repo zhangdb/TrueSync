@@ -179,9 +179,9 @@ namespace TrueSync.Physics3D {
                 TSVector tempNormal; FP tempFraction;
                 bool multiShapeCollides = false;
 
-                TSVector transformedOrigin; TSVector.Subtract(ref rayOrigin, ref body.position, out transformedOrigin);
-                TSVector.Transform(ref transformedOrigin, ref body.invOrientation, out transformedOrigin);
-                TSVector transformedDirection; TSVector.Transform(ref rayDirection, ref body.invOrientation, out transformedDirection);
+                TSVector transformedOrigin; TSVector.Subtract(rayOrigin, body.position, out transformedOrigin);
+                TSVector.Transform(transformedOrigin, body.invOrientation, out transformedOrigin);
+                TSVector transformedDirection; TSVector.Transform(rayDirection, body.invOrientation, out transformedDirection);
 
                 int msLength = ms.Prepare(ref transformedOrigin, ref transformedDirection);
 
@@ -189,21 +189,21 @@ namespace TrueSync.Physics3D {
                 {
                     ms.SetCurrentShape(i);
 
-                    if (GJKCollide.Raycast(ms, ref body.orientation, ref body.invOrientation, ref body.position,
-                        ref rayOrigin, ref rayDirection, out tempFraction, out tempNormal))
+                    if (GJKCollide.Raycast(ms, body.orientation, body.invOrientation, body.position,
+                        rayOrigin, rayDirection, out tempFraction, out tempNormal))
                     {
                         if (tempFraction < fraction)
                         {
                             if (useTerrainNormal && ms is TerrainShape)
                             {
                                 (ms as TerrainShape).CollisionNormal(out tempNormal);
-                                TSVector.Transform(ref tempNormal, ref body.orientation, out tempNormal);
+                                TSVector.Transform(tempNormal, body.orientation, out tempNormal);
                                 tempNormal.Negate();
                             }
                             else if (useTriangleMeshNormal && ms is TriangleMeshShape)
                             {
                                 (ms as TriangleMeshShape).CollisionNormal(out tempNormal);
-                                TSVector.Transform(ref tempNormal, ref body.orientation, out tempNormal);
+                                TSVector.Transform(tempNormal, body.orientation, out tempNormal);
                                 tempNormal.Negate();
                             }
 
@@ -219,8 +219,8 @@ namespace TrueSync.Physics3D {
             }
             else
             {
-                return (GJKCollide.Raycast(body.Shape, ref body.orientation, ref body.invOrientation, ref body.position,
-                    ref rayOrigin, ref rayDirection, out fraction, out normal));
+                return (GJKCollide.Raycast(body.Shape, body.orientation, body.invOrientation, body.position,
+                    rayOrigin, rayDirection, out fraction, out normal));
             }
 
 

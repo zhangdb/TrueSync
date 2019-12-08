@@ -69,18 +69,18 @@ namespace TrueSync.Physics3D {
             TSVector arbitraryPoint;
 
             SupportMapTransformed(support, ref orientation, ref position, ref point, out arbitraryPoint);
-            TSVector.Subtract(ref point, ref arbitraryPoint, out arbitraryPoint);
+            TSVector.Subtract(point, arbitraryPoint, out arbitraryPoint);
 
             TSVector r; support.SupportCenter(out r);
-            TSVector.Transform(ref r, ref orientation, out r);
-            TSVector.Add(ref position, ref r, out r);
-            TSVector.Subtract(ref point, ref r, out r);
+            TSVector.Transform(r, orientation, out r);
+            TSVector.Add(position, r, out r);
+            TSVector.Subtract(point, r, out r);
 
             TSVector x = point;
             TSVector w, p;
             FP VdotR;
 
-            TSVector v; TSVector.Subtract(ref x, ref arbitraryPoint, out v);
+            TSVector v; TSVector.Subtract(x, arbitraryPoint, out v);
             FP dist = v.sqrMagnitude;
             FP epsilon = CollideEpsilon;
 
@@ -92,12 +92,12 @@ namespace TrueSync.Physics3D {
 
             while ((dist > epsilon) && (maxIter-- != 0)) {
                 SupportMapTransformed(support, ref orientation, ref position, ref v, out p);
-                TSVector.Subtract(ref x, ref p, out w);
+                TSVector.Subtract(x, p, out w);
 
-                FP VdotW = TSVector.Dot(ref v, ref w);
+                FP VdotW = TSVector.Dot(v, w);
 
                 if (VdotW > FP.Zero) {
-                    VdotR = TSVector.Dot(ref v, ref r);
+                    VdotR = TSVector.Dot(v, r);
 
                     if (VdotR >= -(TSMath.Epsilon * TSMath.Epsilon)) { simplexSolverPool.GiveBack(simplexSolver); return false; } else simplexSolver.Reset();
                 }
@@ -113,8 +113,8 @@ namespace TrueSync.Physics3D {
         }
 
 
-        public static bool ClosestPoints(ISupportMappable support1, ISupportMappable support2, ref TSMatrix orientation1,
-            ref TSMatrix orientation2, ref TSVector position1, ref TSVector position2,
+        public static bool ClosestPoints(ISupportMappable support1, ISupportMappable support2, TSMatrix orientation1,
+            TSMatrix orientation2, TSVector position1, TSVector position2,
             out TSVector p1, out TSVector p2, out TSVector normal) {
 
             VoronoiSimplexSolver simplexSolver = simplexSolverPool.GetNew();
@@ -284,11 +284,11 @@ namespace TrueSync.Physics3D {
         /// <param name="origin">The origin of the ray.</param>
         /// <param name="direction">The direction of the ray.</param>
         /// <param name="fraction">The fraction which gives information where at the 
-        /// ray the collision occured. The hitPoint is calculated by: origin+friction*direction.</param>
+        ///     ray the collision occured. The hitPoint is calculated by: origin+friction*direction.</param>
         /// <param name="normal">The normal from the ray collision.</param>
         /// <returns>Returns true if the ray hit the shape, false otherwise.</returns>
-        public static bool Raycast(ISupportMappable support, ref TSMatrix orientation, ref TSMatrix invOrientation,
-            ref TSVector position, ref TSVector origin, ref TSVector direction, out FP fraction, out TSVector normal) {
+        public static bool Raycast(ISupportMappable support, TSMatrix orientation, TSMatrix invOrientation,
+            TSVector position, TSVector origin, TSVector direction, out FP fraction, out TSVector normal) {
             VoronoiSimplexSolver simplexSolver = simplexSolverPool.GetNew();
             simplexSolver.Reset();
 
@@ -303,7 +303,7 @@ namespace TrueSync.Physics3D {
 
             TSVector arbitraryPoint;
             SupportMapTransformed(support, ref orientation, ref position, ref r, out arbitraryPoint);
-            TSVector.Subtract(ref x, ref arbitraryPoint, out v);
+            TSVector.Subtract(x, arbitraryPoint, out v);
 
             int maxIter = MaxIterations;
 
@@ -314,21 +314,21 @@ namespace TrueSync.Physics3D {
 
             while ((distSq > epsilon) && (maxIter-- != 0)) {
                 SupportMapTransformed(support, ref orientation, ref position, ref v, out p);
-                TSVector.Subtract(ref x, ref p, out w);
+                TSVector.Subtract(x, p, out w);
 
-                FP VdotW = TSVector.Dot(ref v, ref w);
+                FP VdotW = TSVector.Dot(v, w);
 
                 if (VdotW > FP.Zero) {
-                    VdotR = TSVector.Dot(ref v, ref r);
+                    VdotR = TSVector.Dot(v, r);
 
                     if (VdotR >= -TSMath.Epsilon) {
                         simplexSolverPool.GiveBack(simplexSolver);
                         return false;
                     } else {
                         lambda = lambda - VdotW / VdotR;
-                        TSVector.Multiply(ref r, lambda, out x);
-                        TSVector.Add(ref origin, ref x, out x);
-                        TSVector.Subtract(ref x, ref p, out w);
+                        TSVector.Multiply(r, lambda, out x);
+                        TSVector.Add(origin, x, out x);
+                        TSVector.Subtract(x, p, out w);
                         normal = v;
                     }
                 }

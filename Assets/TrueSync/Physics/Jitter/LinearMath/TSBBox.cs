@@ -88,26 +88,26 @@ namespace TrueSync
         /// <param name="position"></param>
         /// <param name="orientation"></param>
         /// <param name="result"></param>
-        internal void InverseTransform(ref TSVector position, ref TSMatrix orientation)
+        internal void InverseTransform(TSVector position, TSMatrix orientation)
         {
-            TSVector.Subtract(ref max, ref position, out max);
-            TSVector.Subtract(ref min, ref position, out min);
+            TSVector.Subtract(max, position, out max);
+            TSVector.Subtract(min, position, out min);
 
             TSVector center;
-            TSVector.Add(ref max, ref min, out center);
+            TSVector.Add(max, min, out center);
             center.x *= FP.Half; center.y *= FP.Half; center.z *= FP.Half;
 
             TSVector halfExtents;
-            TSVector.Subtract(ref max, ref min, out halfExtents);
+            TSVector.Subtract(max, min, out halfExtents);
             halfExtents.x *= FP.Half; halfExtents.y *= FP.Half; halfExtents.z *= FP.Half;
 
-            TSVector.TransposedTransform(ref center, ref orientation, out center);
+            TSVector.TransposedTransform(center, orientation, out center);
 
-            TSMatrix abs; TSMath.Absolute(ref orientation, out abs);
-            TSVector.TransposedTransform(ref halfExtents, ref abs, out halfExtents);
+            TSMatrix abs; TSMath.Absolute(orientation, out abs);
+            TSVector.TransposedTransform(halfExtents, abs, out halfExtents);
 
-            TSVector.Add(ref center, ref halfExtents, out max);
-            TSVector.Subtract(ref center, ref halfExtents, out min);
+            TSVector.Add(center, halfExtents, out max);
+            TSVector.Subtract(center, halfExtents, out min);
         }
 
         public void Transform(ref TSMatrix orientation)
@@ -115,10 +115,10 @@ namespace TrueSync
             TSVector halfExtents = FP.Half * (max - min);
             TSVector center = FP.Half * (max + min);
 
-            TSVector.Transform(ref center, ref orientation, out center);
+            TSVector.Transform(center, orientation, out center);
 
-            TSMatrix abs; TSMath.Absolute(ref orientation, out abs);
-            TSVector.Transform(ref halfExtents, ref abs, out halfExtents);
+            TSMatrix abs; TSMath.Absolute(orientation, out abs);
+            TSVector.Transform(halfExtents, abs, out halfExtents);
 
             max = center + halfExtents;
             min = center - halfExtents;
@@ -237,15 +237,11 @@ namespace TrueSync
         #endregion
 
 
+
         public void AddPoint(TSVector point)
         {
-            AddPoint(ref point);
-        }
-
-        public void AddPoint(ref TSVector point)
-        {
-            TSVector.Max(ref this.max, ref point, out this.max);
-            TSVector.Min(ref this.min, ref point, out this.min);
+            TSVector.Max(this.max, point, out this.max);
+            TSVector.Min(this.min, point, out this.min);
         }
 
         /// <summary>
@@ -263,8 +259,8 @@ namespace TrueSync
 
             for (int i = 0; i < points.Length; i++)
             {
-                TSVector.Min(ref vector3, ref points[i], out vector3);
-                TSVector.Max(ref vector2, ref points[i], out vector2);
+                TSVector.Min(vector3, points[i], out vector3);
+                TSVector.Max(vector2, points[i], out vector2);
             }
             return new TSBBox(vector3, vector2);
         }
@@ -333,8 +329,8 @@ namespace TrueSync
         {
             TSVector vector;
             TSVector vector2;
-            TSVector.Min(ref original.min, ref additional.min, out vector2);
-            TSVector.Max(ref original.max, ref additional.max, out vector);
+            TSVector.Min(original.min, additional.min, out vector2);
+            TSVector.Max(original.max, additional.max, out vector);
             result.min = vector2;
             result.max = vector;
         }

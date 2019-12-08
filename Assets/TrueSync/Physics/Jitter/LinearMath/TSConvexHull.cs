@@ -99,7 +99,7 @@ namespace TrueSync.Physics3D {
             {
                 point = points[i];
 
-                value = TSVector.Dot(ref point, ref dir);
+                value = TSVector.Dot(point, dir);
                 if (value > current) { current = value; index= i; }
             }
 

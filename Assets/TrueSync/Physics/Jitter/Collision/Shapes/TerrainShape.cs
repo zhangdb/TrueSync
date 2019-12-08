@@ -144,14 +144,14 @@ namespace TrueSync.Physics3D {
             }
 
             TSVector sum = points[0];
-            TSVector.Add(ref sum, ref points[1], out sum);
-            TSVector.Add(ref sum, ref points[2], out sum);
-            TSVector.Multiply(ref sum, FP.One / (3 * FP.One), out sum);
+            TSVector.Add(sum, points[1], out sum);
+            TSVector.Add(sum, points[2], out sum);
+            TSVector.Multiply(sum, FP.One / (3 * FP.One), out sum);
             geomCen = sum;
 
-            TSVector.Subtract(ref points[1], ref points[0], out sum);
-            TSVector.Subtract(ref points[2], ref points[0], out normal);
-            TSVector.Cross(ref sum, ref normal, out normal);
+            TSVector.Subtract(points[1], points[0], out sum);
+            TSVector.Subtract(points[2], points[0], out normal);
+            TSVector.Cross(sum, normal, out normal);
         }
 
         public void CollisionNormal(out TSVector normal)
@@ -268,25 +268,25 @@ namespace TrueSync.Physics3D {
         public override void SupportMapping(ref TSVector direction, out TSVector result)
         {
             TSVector expandVector;
-            TSVector.Normalize(ref direction, out expandVector);
-            TSVector.Multiply(ref expandVector, sphericalExpansion, out expandVector);
+            TSVector.Normalize(direction, out expandVector);
+            TSVector.Multiply(expandVector, sphericalExpansion, out expandVector);
 
             int minIndex = 0;
-            FP min = TSVector.Dot(ref points[0], ref direction);
-            FP dot = TSVector.Dot(ref points[1], ref direction);
+            FP min = TSVector.Dot(points[0], direction);
+            FP dot = TSVector.Dot(points[1], direction);
             if (dot > min)
             {
                 min = dot;
                 minIndex = 1;
             }
-            dot = TSVector.Dot(ref points[2], ref direction);
+            dot = TSVector.Dot(points[2], direction);
             if (dot > min)
             {
                 min = dot;
                 minIndex = 2;
             }
 
-            TSVector.Add(ref points[minIndex], ref expandVector, out result);
+            TSVector.Add(points[minIndex], expandVector, out result);
         }
 
         /// <summary>
@@ -301,12 +301,12 @@ namespace TrueSync.Physics3D {
 
             #region RayEnd + Expand Spherical
             TSVector rayEnd;
-            TSVector.Normalize(ref rayDelta, out rayEnd);
+            TSVector.Normalize(rayDelta, out rayEnd);
             rayEnd = rayOrigin + rayDelta + rayEnd * sphericalExpansion;
             #endregion
 
-            box.AddPoint(ref rayOrigin);
-            box.AddPoint(ref rayEnd);
+            box.AddPoint(rayOrigin);
+            box.AddPoint(rayEnd);
 
             return this.Prepare(ref box);
         }
