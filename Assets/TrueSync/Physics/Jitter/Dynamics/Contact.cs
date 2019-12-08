@@ -153,18 +153,9 @@ namespace TrueSync.Physics3D {
         /// </summary>
         public TSVector CalculateRelativeVelocity()
         {
-            FP x, y, z;
-
-            x = (body2.angularVelocity.y * relativePos2.z) - (body2.angularVelocity.z * relativePos2.y) + body2.linearVelocity.x;
-            y = (body2.angularVelocity.z * relativePos2.x) - (body2.angularVelocity.x * relativePos2.z) + body2.linearVelocity.y;
-            z = (body2.angularVelocity.x * relativePos2.y) - (body2.angularVelocity.y * relativePos2.x) + body2.linearVelocity.z;
-
-            TSVector relVel;
-            relVel.x = x - (body1.angularVelocity.y * relativePos1.z) + (body1.angularVelocity.z * relativePos1.y) - body1.linearVelocity.x;
-            relVel.y = y - (body1.angularVelocity.z * relativePos1.x) + (body1.angularVelocity.x * relativePos1.z) - body1.linearVelocity.y;
-            relVel.z = z - (body1.angularVelocity.x * relativePos1.y) + (body1.angularVelocity.y * relativePos1.x) - body1.linearVelocity.z;
-
-            return relVel;
+            var v2 = TSVector.Cross(body2.angularVelocity, relativePos2) + body2.linearVelocity;
+            var v1 = TSVector.Cross(body1.angularVelocity, relativePos1) + body1.linearVelocity;
+            return v2 - v1;
         }
 
         /// <summary>
@@ -178,31 +169,23 @@ namespace TrueSync.Physics3D {
 
             if (treatBody1AsStatic && treatBody2AsStatic) return;
 
-            FP dvx, dvy, dvz;
-
-            dvx = body2.linearVelocity.x - body1.linearVelocity.x;
-            dvy = body2.linearVelocity.y - body1.linearVelocity.y;
-            dvz = body2.linearVelocity.z - body1.linearVelocity.z;
+            var dv = body2.linearVelocity - body1.linearVelocity;
 
             if (!body1IsMassPoint)
             {
-                dvx = dvx - (body1.angularVelocity.y * relativePos1.z) + (body1.angularVelocity.z * relativePos1.y);
-                dvy = dvy - (body1.angularVelocity.z * relativePos1.x) + (body1.angularVelocity.x * relativePos1.z);
-                dvz = dvz - (body1.angularVelocity.x * relativePos1.y) + (body1.angularVelocity.y * relativePos1.x);
+                dv -= TSVector.Cross(body1.angularVelocity, relativePos1);
             }
 
             if (!body2IsMassPoint)
             {
-                dvx = dvx + (body2.angularVelocity.y * relativePos2.z) - (body2.angularVelocity.z * relativePos2.y);
-                dvy = dvy + (body2.angularVelocity.z * relativePos2.x) - (body2.angularVelocity.x * relativePos2.z);
-                dvz = dvz + (body2.angularVelocity.x * relativePos2.y) - (body2.angularVelocity.y * relativePos2.x);
+                dv += TSVector.Cross(body2.angularVelocity, relativePos2);
             }
 
             // this gets us some performance
-            if (dvx * dvx + dvy * dvy + dvz * dvz < settings.minVelocity * settings.minVelocity)
-            { return; }
+            if (dv.sqrMagnitude < settings.minVelocity * settings.minVelocity) return;
 
-            FP vn = normal.x * dvx + normal.y * dvy + normal.z * dvz;
+          
+            FP vn = TSVector.Dot(normal, dv);
             FP normalImpulse = massNormal * (-vn + restitutionBias + speculativeVelocity);
 
             FP oldNormalImpulse = accumulatedNormalImpulse;
@@ -210,9 +193,9 @@ namespace TrueSync.Physics3D {
             if (accumulatedNormalImpulse < FP.Zero) accumulatedNormalImpulse = FP.Zero;
             normalImpulse = accumulatedNormalImpulse - oldNormalImpulse;
 
-            FP vt = dvx * tangent.x + dvy * tangent.y + dvz * tangent.z;
+            FP vt = TSVector.Dot(dv, tangent);
             FP maxTangentImpulse = friction * accumulatedNormalImpulse;
-            FP tangentImpulse = massTangent * (-vt);
+            FP tangentImpulse = massTangent * -vt;
 
             FP oldTangentImpulse = accumulatedTangentImpulse;
             accumulatedTangentImpulse = oldTangentImpulse + tangentImpulse;
@@ -274,23 +257,25 @@ namespace TrueSync.Physics3D {
             {
                 body1.ApplyImpulse(-impulse);
 
-                FP num0, num1, num2;
-                num0 = relativePos1.y * impulse.z - relativePos1.z * impulse.y;
-                num1 = relativePos1.z * impulse.x - relativePos1.x * impulse.z;
-                num2 = relativePos1.x * impulse.y - relativePos1.y * impulse.x;
+                //FP num0, num1, num2;
+                //num0 = relativePos1.y * impulse.z - relativePos1.z * impulse.y;
+                //num1 = relativePos1.z * impulse.x - relativePos1.x * impulse.z;
+                //num2 = relativePos1.x * impulse.y - relativePos1.y * impulse.x;
+
+                var av = TSVector.Cross(-impulse, relativePos1);
 
                 FP num3 =
-                    (((num0 * body1.invInertiaWorld.M11) +
-                    (num1 * body1.invInertiaWorld.M21)) +
-                    (num2 * body1.invInertiaWorld.M31));
+                    av.x * body1.invInertiaWorld.M11 +
+                    av.y * body1.invInertiaWorld.M21 +
+                    av.z * body1.invInertiaWorld.M31;
                 FP num4 =
-                    (((num0 * body1.invInertiaWorld.M12) +
-                    (num1 * body1.invInertiaWorld.M22)) +
-                    (num2 * body1.invInertiaWorld.M32));
+                    av.x * body1.invInertiaWorld.M12 +
+                    av.y * body1.invInertiaWorld.M22 +
+                    av.z * body1.invInertiaWorld.M32;
                 FP num5 =
-                    (((num0 * body1.invInertiaWorld.M13) +
-                    (num1 * body1.invInertiaWorld.M23)) +
-                    (num2 * body1.invInertiaWorld.M33));
+                    av.x * body1.invInertiaWorld.M13 +
+                    av.y * body1.invInertiaWorld.M23 +
+                    av.z * body1.invInertiaWorld.M33;
 
                 body1.angularVelocity.x -= num3;
                 body1.angularVelocity.y -= num4;
@@ -302,27 +287,30 @@ namespace TrueSync.Physics3D {
 
                 body2.ApplyImpulse(impulse);
 
-                FP num0, num1, num2;
-                num0 = relativePos2.y * impulse.z - relativePos2.z * impulse.y;
-                num1 = relativePos2.z * impulse.x - relativePos2.x * impulse.z;
-                num2 = relativePos2.x * impulse.y - relativePos2.y * impulse.x;
+               
+                //FP num0, num1, num2;
+                //num0 = -relativePos2.y * impulse.z + relativePos2.z * impulse.y;
+                //num1 = -relativePos2.z * impulse.x + relativePos2.x * impulse.z;
+                //num2 = -relativePos2.x * impulse.y + relativePos2.y * impulse.x;
+
+                var av = TSVector.Cross(impulse, relativePos2);
 
                 FP num3 =
-                    (((num0 * body2.invInertiaWorld.M11) +
-                    (num1 * body2.invInertiaWorld.M21)) +
-                    (num2 * body2.invInertiaWorld.M31));
+                    av.x * body2.invInertiaWorld.M11 +
+                    av.y * body2.invInertiaWorld.M21 +
+                    av.z * body2.invInertiaWorld.M31;
                 FP num4 =
-                    (((num0 * body2.invInertiaWorld.M12) +
-                    (num1 * body2.invInertiaWorld.M22)) +
-                    (num2 * body2.invInertiaWorld.M32));
+                    av.x * body2.invInertiaWorld.M12 +
+                    av.y * body2.invInertiaWorld.M22 +
+                    av.z * body2.invInertiaWorld.M32;
                 FP num5 =
-                    (((num0 * body2.invInertiaWorld.M13) +
-                    (num1 * body2.invInertiaWorld.M23)) +
-                    (num2 * body2.invInertiaWorld.M33));
+                    av.x * body2.invInertiaWorld.M13 +
+                    av.y * body2.invInertiaWorld.M23 +
+                    av.z * body2.invInertiaWorld.M33;
 
-                body2.angularVelocity.x += num3;
-                body2.angularVelocity.y += num4;
-                body2.angularVelocity.z += num5;
+                body2.angularVelocity.x -= num3;
+                body2.angularVelocity.y -= num4;
+                body2.angularVelocity.z -= num5;
             }
 
 

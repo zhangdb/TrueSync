@@ -39,6 +39,7 @@ namespace TrueSync.Physics3D {
         [Flags]
         public enum DampingType { None = 0x00, Angular = 0x01, Linear = 0x02 }
 
+        // 惯性
         internal TSMatrix inertia;
         internal TSMatrix invInertia;
 
