@@ -922,8 +922,7 @@ namespace TrueSync.Physics3D
             Contact contact = null;
 
             if (arbiter.body1 == body1) {
-                TSVector.Negate(normal, out normal);
-                contact = arbiter.AddContact(point1, point2, normal, penetration, contactSettings);
+                contact = arbiter.AddContact(point1, point2, -normal, penetration, contactSettings);
             } else {
                 contact = arbiter.AddContact(point2, point1, normal, penetration, contactSettings);
             }
