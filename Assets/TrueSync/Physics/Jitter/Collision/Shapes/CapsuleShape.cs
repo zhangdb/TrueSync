@@ -58,7 +58,7 @@ namespace TrueSync.Physics3D {
         /// </summary>
         public override void CalculateMassInertia()
         {
-            FP massSphere = ( (3 * FP.One) / (4 * FP.One)) * TSMath.Pi * radius * radius * radius;
+            FP massSphere = ( (4 * FP.One) / (3 * FP.One)) * TSMath.Pi * radius * radius * radius;
             FP massCylinder = TSMath.Pi * radius * radius * length;
 
             mass = massCylinder + massSphere;

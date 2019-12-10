@@ -515,7 +515,7 @@ namespace TrueSync {
 
             if (tsCollider != null) {
                 if (tsCollider.IsBodyInitialized) {
-                    tsCollider.Body.TSPosition = _position + scaledCenter;
+                    tsCollider.Body.TSPosition = transform.position.ToTSVector() + scaledCenter;
                     tsCollider.Body.TSOrientation = transform.rotation.ToTSMatrix();
                 }
             } else {

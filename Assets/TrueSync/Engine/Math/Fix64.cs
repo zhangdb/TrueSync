@@ -909,7 +909,7 @@ namespace TrueSync {
         }
 
         public override string ToString() {
-            return ((float)this).ToString();
+            return $"{AsFloat():f5}";
         }
 
         public string ToString(IFormatProvider provider) {

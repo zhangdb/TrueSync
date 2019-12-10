@@ -637,6 +637,7 @@ namespace TrueSync.Physics3D {
                 {
                     TSMatrix.Multiply(ref Shape.inertia, value / Shape.mass, out inertia);
                     TSMatrix.Inverse(ref inertia, out invInertia);
+                    UpdateInvInertiaWorld();
                 }
 
                 inverseMass = FP.One / value;
@@ -708,10 +709,15 @@ namespace TrueSync.Physics3D {
 
                 if (!isStatic)
                 {
-                    TSMatrix.Multiply(ref invOrientation, ref invInertia, out invInertiaWorld);
-                    TSMatrix.Multiply(ref invInertiaWorld, ref orientation, out invInertiaWorld);
+                    UpdateInvInertiaWorld();
                 }
             }
+        }
+
+        private void UpdateInvInertiaWorld()
+        {
+            TSMatrix.Multiply(ref invOrientation, ref invInertia, out invInertiaWorld);
+            TSMatrix.Multiply(ref invInertiaWorld, ref orientation, out invInertiaWorld);
         }
 
         public bool Equals(RigidBody other)

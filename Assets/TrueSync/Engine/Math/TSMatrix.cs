@@ -652,6 +652,24 @@ namespace TrueSync
                 M33.GetHashCode();
         }
 
+        public TSVector Multiply(TSVector v)
+        {
+            TSVector result;
+            result.x = M11 * v.x + M12 * v.y + M13 * v.z;
+            result.y = M21 * v.x + M22 * v.y + M23 * v.z;
+            result.z = M31 * v.x + M32 * v.y + M33 * v.z;
+            return result;
+        }
+
+        public TSVector TransposedMultiply(TSVector v)
+        {
+            TSVector result;
+            result.x = M11 * v.x + M21 * v.y + M31 * v.z;
+            result.y = M12 * v.x + M22 * v.y + M32 * v.z;
+            result.z = M13 * v.x + M23 * v.y + M33 * v.z;
+            return result;
+        }
+
         /// <summary>
         /// Creates a matrix which rotates around the given axis by the given angle.
         /// </summary>
@@ -698,7 +716,7 @@ namespace TrueSync
         #endregion
 
         public override string ToString() {
-            return string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}", M11.RawValue, M12.RawValue, M13.RawValue, M21.RawValue, M22.RawValue, M23.RawValue, M31.RawValue, M32.RawValue, M33.RawValue);
+            return string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}", M11, M12, M13, M21, M22, M23, M31, M32, M33);
         }
 
     }

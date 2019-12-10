@@ -27,8 +27,8 @@ namespace TrueSync.Physics3D {
         internal FP maximumBias = 10;
         internal FP bias = 25 * FP.EN2;
         internal FP minVelocity = FP.EN3;
-        internal FP allowedPenetration = FP.EN2;
-        internal FP breakThreshold = FP.EN2;
+        internal FP allowedPenetration = FP.EN3;
+        internal FP breakThreshold = FP.EN3;
 
         internal MaterialCoefficientMixingType materialMode = MaterialCoefficientMixingType.UseAverage;
 
@@ -166,7 +166,7 @@ namespace TrueSync.Physics3D {
             //body1.linearVelocity = JVector.Zero;
             //body2.linearVelocity = JVector.Zero;
             //return;
-
+          
             if (treatBody1AsStatic && treatBody2AsStatic) return;
 
             var dv = body2.linearVelocity - body1.linearVelocity;
@@ -225,7 +225,7 @@ namespace TrueSync.Physics3D {
             }
             else
             {
-                TSVector.Transform(realRelPos1, body1.orientation, out p1);
+                p1 = body1.Orientation.Multiply(realRelPos1);
                 TSVector.Add(p1, body1.position, out p1);
             }
 
@@ -235,7 +235,7 @@ namespace TrueSync.Physics3D {
             }
             else
             {
-                TSVector.Transform(realRelPos2, body2.orientation, out p2);
+                p1 = body1.orientation.Multiply(realRelPos2);
                 TSVector.Add(p2, body2.position, out p2);
             }
 
@@ -361,8 +361,12 @@ namespace TrueSync.Physics3D {
 
             massNormal = FP.One / kNormal;
 
+          
+
             tangent = dv - TSVector.Dot(dv, normal) * normal;
             tangent.Normalize();
+
+
 
             FP kTangent = FP.Zero;
 
@@ -373,7 +377,7 @@ namespace TrueSync.Physics3D {
   
                 if (!body1IsMassPoint)
                 {
-                    TSVector.Cross(relativePos1, normal, out rantra);
+                    TSVector.Cross(relativePos1, tangent, out rantra);
                     TSVector.Transform(rantra, body1.invInertiaWorld, out rantra);
                     TSVector.Cross(rantra, relativePos1, out rantra);
                 }
@@ -484,6 +488,7 @@ namespace TrueSync.Physics3D {
         public void Initialize(RigidBody body1, RigidBody body2, ref TSVector point1, ref TSVector point2, ref TSVector n,
             FP penetration, bool newContact, ContactSettings settings)
         {
+           
             this.body1 = body1;  this.body2 = body2;
             this.normal = n; normal.Normalize();
             this.p1 = point1; this.p2 = point2;
@@ -492,8 +497,11 @@ namespace TrueSync.Physics3D {
 
             TSVector.Subtract(p1, body1.position, out relativePos1);
             TSVector.Subtract(p2, body2.position, out relativePos2);
-            TSVector.Transform(relativePos1, body1.invOrientation, out realRelPos1);
-            TSVector.Transform(relativePos2, body2.invOrientation, out realRelPos2);
+
+            //TSVector.Transform(relativePos1, body1.invOrientation, out realRelPos1);
+            //TSVector.Transform(relativePos2, body2.invOrientation, out realRelPos2);
+            realRelPos1 = body1.Orientation.Multiply(relativePos1);
+            realRelPos2 = body2.Orientation.Multiply(relativePos2);
 
             this.initialPen = penetration;
             this.penetration = penetration;
