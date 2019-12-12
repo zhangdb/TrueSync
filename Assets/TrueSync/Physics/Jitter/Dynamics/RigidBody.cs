@@ -331,7 +331,7 @@ namespace TrueSync.Physics3D {
             if (this.isStatic || impulse.IsZero()) {
                 return;
             }
-            //UnityEngine.Debug.Log($"ApplyImpulse {impulse} {relativePosition}");
+
             TSVector temp;
             TSVector.Multiply(impulse, inverseMass, out temp);
             TSVector.Add(linearVelocity, temp, out linearVelocity);

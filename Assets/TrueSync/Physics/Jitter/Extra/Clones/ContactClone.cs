@@ -26,8 +26,7 @@
 
 		public bool newContact;
 
-		public bool treatBody1AsStatic;
-		public bool treatBody2AsStatic;
+
 
 		public bool body1IsMassPoint; 
 		public bool body2IsMassPoint;
@@ -61,8 +60,6 @@
 			massTangent = contact.massTangent;
 			restitutionBias = contact.restitutionBias;
 			newContact = contact.newContact;
-			treatBody1AsStatic = contact.treatBody1AsStatic;
-			treatBody2AsStatic = contact.treatBody2AsStatic;
 			body1IsMassPoint = contact.body1IsMassPoint;
 			body2IsMassPoint = contact.body2IsMassPoint;
 			lostSpeculativeBounce = contact.lostSpeculativeBounce;
@@ -94,8 +91,6 @@
 			contact.massTangent = massTangent;
 			contact.restitutionBias = restitutionBias;
 			contact.newContact = newContact;
-			contact.treatBody1AsStatic = treatBody1AsStatic;
-			contact.treatBody2AsStatic = treatBody2AsStatic;
 			contact.body1IsMassPoint = body1IsMassPoint;
 			contact.body2IsMassPoint = body2IsMassPoint;
 			contact.lostSpeculativeBounce = lostSpeculativeBounce;

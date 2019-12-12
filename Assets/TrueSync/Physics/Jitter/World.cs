@@ -20,7 +20,6 @@
 #region Using Statements
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 #endregion
 
 namespace TrueSync.Physics3D
@@ -798,73 +797,62 @@ namespace TrueSync.Physics3D
                         TSVector.Add(body.linearVelocity, temp, out body.linearVelocity);
                     }
                 }
-
                 body.force.MakeZero();
                 body.torque.MakeZero();
 
             }
         }
 
-        #region private void IntegrateCallback(object obj)
-        private void IntegrateCallback(object obj)
-        {
-            RigidBody body = obj as RigidBody;
-
-            TSVector temp;
-            TSVector.Multiply(body.linearVelocity, timestep, out temp);
-            TSVector.Add(temp, body.position, out body.position);
-
-            if (!(body.isParticle))
-            {
-
-                //exponential map
-                TSVector axis;
-                FP angle = body.angularVelocity.magnitude;
-
-                if (angle < FP.EN3)
-                {
-                    // use Taylor's expansions of sync function
-                    // axis = body.angularVelocity * (FP.Half * timestep - (timestep * timestep * timestep) * (0.020833333333f) * angle * angle);
-					TSVector.Multiply(body.angularVelocity, (FP.Half * timestep - (timestep * timestep * timestep) * (2082 * FP.EN6) * angle * angle), out axis);
-                }
-                else
-                {
-                    // sync(fAngle) = sin(c*fAngle)/t
-                    TSVector.Multiply(body.angularVelocity, (FP.Sin(FP.Half * angle * timestep) / angle), out axis);
-                }
-
-                TSQuaternion dorn = new TSQuaternion(axis.x, axis.y, axis.z, FP.Cos(angle * timestep * FP.Half));
-                TSQuaternion ornA; TSQuaternion.CreateFromMatrix(ref body.orientation, out ornA);
-
-                TSQuaternion.Multiply(ref dorn, ref ornA, out dorn);
-
-                dorn.Normalize(); TSMatrix.CreateFromQuaternion(ref dorn, out body.orientation);
-            }
-
-            body.linearVelocity *= 1 / (1 + timestep * body.linearDrag);
-            body.angularVelocity *= 1 / (1 + timestep * body.angularDrag);
-
-            /*if ((body.Damping & RigidBody.DampingType.Linear) != 0)
-                TSVector.Multiply(ref body.linearVelocity, currentLinearDampFactor, out body.linearVelocity);
-
-            if ((body.Damping & RigidBody.DampingType.Angular) != 0)
-                TSVector.Multiply(ref body.angularVelocity, currentAngularDampFactor, out body.angularVelocity);*/
-
-            body.Update();
-
-            
-            if (CollisionSystem.EnableSpeculativeContacts || body.EnableSpeculativeContacts)
-                body.SweptExpandBoundingBox(timestep);
-        }
-        #endregion
 
 
         private void Integrate()
         {
             for (int index = 0, length = rigidBodies.Count; index < length; index++) {
-                RigidBody body = rigidBodies[index];
+                var body = rigidBodies[index];
                 if (body.isStatic || !body.IsActive) continue;
-                IntegrateCallback(body);
+
+                body.position += body.linearVelocity * timestep;
+                if (!(body.isParticle))
+                {
+
+                    //exponential map
+                    TSVector axis;
+                    FP angle = body.angularVelocity.magnitude;
+
+                    if (angle < FP.EN3)
+                    {
+                        // use Taylor's expansions of sync function
+                        // axis = body.angularVelocity * (FP.Half * timestep - (timestep * timestep * timestep) * (0.020833333333f) * angle * angle);
+                        TSVector.Multiply(body.angularVelocity, (FP.Half * timestep - (timestep * timestep * timestep) * (2082 * FP.EN6) * angle * angle), out axis);
+                    }
+                    else
+                    {
+                        // sync(fAngle) = sin(c*fAngle)/t
+                        TSVector.Multiply(body.angularVelocity, (FP.Sin(FP.Half * angle * timestep) / angle), out axis);
+                    }
+
+                    TSQuaternion dorn = new TSQuaternion(axis.x, axis.y, axis.z, FP.Cos(angle * timestep * FP.Half));
+                    TSQuaternion ornA; TSQuaternion.CreateFromMatrix(ref body.orientation, out ornA);
+
+                    TSQuaternion.Multiply(ref dorn, ref ornA, out dorn);
+
+                    dorn.Normalize(); TSMatrix.CreateFromQuaternion(ref dorn, out body.orientation);
+                }
+
+            body.linearVelocity *= 1 / (1 + timestep * body.linearDrag);
+            body.angularVelocity *= 1 / (1 + timestep * body.angularDrag);
+
+                /*if ((body.Damping & RigidBody.DampingType.Linear) != 0)
+                    TSVector.Multiply(ref body.linearVelocity, currentLinearDampFactor, out body.linearVelocity);
+
+                if ((body.Damping & RigidBody.DampingType.Angular) != 0)
+                    TSVector.Multiply(ref body.angularVelocity, currentAngularDampFactor, out body.angularVelocity);*/
+
+                body.Update();
+
+
+                if (CollisionSystem.EnableSpeculativeContacts || body.EnableSpeculativeContacts)
+                    body.SweptExpandBoundingBox(timestep);
             }
         }
 
@@ -893,9 +881,7 @@ namespace TrueSync.Physics3D
         }
 
         private void CollisionDetected(RigidBody body1, RigidBody body2, TSVector point1, TSVector point2, TSVector normal, FP penetration) {
-            //UnityEngine.Debug.Break();
-            //UnityEngine.Debug.Log($"{body1.GetHashCode()} --> {body2.GetHashCode()}");
-
+       
             bool anyBodyColliderOnly = body1.IsColliderOnly || body2.IsColliderOnly;
 
             Arbiter arbiter = null;

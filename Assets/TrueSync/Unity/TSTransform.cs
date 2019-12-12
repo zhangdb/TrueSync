@@ -517,6 +517,7 @@ namespace TrueSync {
                 if (tsCollider.IsBodyInitialized) {
                     tsCollider.Body.TSPosition = transform.position.ToTSVector() + scaledCenter;
                     tsCollider.Body.TSOrientation = transform.rotation.ToTSMatrix();
+                    localScale = transform.localScale.ToTSVector();
                 }
             } else {
                 StateTracker.AddTracking(this);
